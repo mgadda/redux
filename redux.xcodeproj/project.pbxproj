@@ -1,0 +1,208 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		7D2DF6DF14992D3800DD3D46 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D2DF6DE14992D3800DD3D46 /* main.cpp */; };
+		7D2DF6E114992D3800DD3D46 /* redux.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7D2DF6E014992D3800DD3D46 /* redux.1 */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		7D2DF6D814992D3800DD3D46 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+				7D2DF6E114992D3800DD3D46 /* redux.1 in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		7D2DF6DA14992D3800DD3D46 /* redux */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = redux; sourceTree = BUILT_PRODUCTS_DIR; };
+		7D2DF6DE14992D3800DD3D46 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		7D2DF6E014992D3800DD3D46 /* redux.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = redux.1; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		7D2DF6D714992D3800DD3D46 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		7D2DF6CF14992D3800DD3D46 = {
+			isa = PBXGroup;
+			children = (
+				7D2DF6DD14992D3800DD3D46 /* redux */,
+				7D2DF6DB14992D3800DD3D46 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		7D2DF6DB14992D3800DD3D46 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7D2DF6DA14992D3800DD3D46 /* redux */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		7D2DF6DD14992D3800DD3D46 /* redux */ = {
+			isa = PBXGroup;
+			children = (
+				7D2DF6DE14992D3800DD3D46 /* main.cpp */,
+				7D2DF6E014992D3800DD3D46 /* redux.1 */,
+			);
+			path = redux;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		7D2DF6D914992D3800DD3D46 /* redux */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7D2DF6E414992D3800DD3D46 /* Build configuration list for PBXNativeTarget "redux" */;
+			buildPhases = (
+				7D2DF6D614992D3800DD3D46 /* Sources */,
+				7D2DF6D714992D3800DD3D46 /* Frameworks */,
+				7D2DF6D814992D3800DD3D46 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = redux;
+			productName = redux;
+			productReference = 7D2DF6DA14992D3800DD3D46 /* redux */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7D2DF6D114992D3800DD3D46 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0420;
+			};
+			buildConfigurationList = 7D2DF6D414992D3800DD3D46 /* Build configuration list for PBXProject "redux" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 7D2DF6CF14992D3800DD3D46;
+			productRefGroup = 7D2DF6DB14992D3800DD3D46 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				7D2DF6D914992D3800DD3D46 /* redux */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		7D2DF6D614992D3800DD3D46 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7D2DF6DF14992D3800DD3D46 /* main.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		7D2DF6E214992D3800DD3D46 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		7D2DF6E314992D3800DD3D46 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		7D2DF6E514992D3800DD3D46 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		7D2DF6E614992D3800DD3D46 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		7D2DF6D414992D3800DD3D46 /* Build configuration list for PBXProject "redux" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7D2DF6E214992D3800DD3D46 /* Debug */,
+				7D2DF6E314992D3800DD3D46 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7D2DF6E414992D3800DD3D46 /* Build configuration list for PBXNativeTarget "redux" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7D2DF6E514992D3800DD3D46 /* Debug */,
+				7D2DF6E614992D3800DD3D46 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 7D2DF6D114992D3800DD3D46 /* Project object */;
+}
