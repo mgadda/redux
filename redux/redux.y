@@ -1,6 +1,6 @@
 %{
   #include <stdio.h>
-  #include "redux.h"  
+  #include "redux_glue.h"  
 %}
 
 %token NUMBER

@@ -8,7 +8,7 @@
 
 #include <stdio.h>
 
-#include "redux.h"
+#include "redux_glue.h"
 #include "redux.tab.h"
 
 int main (int argc, const char * argv[])

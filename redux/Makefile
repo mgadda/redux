@@ -1,10 +1,10 @@
 
 all: redux
-redux: redux.l redux.y redux.h main.c redux.c
+redux: redux.l redux.y redux_glue.h redux_glue.c main.c
 	bison -d redux.y && \
-	flex -oredux.lex.c redux.l && \
+	flex redux.l && \
 	gcc -o $@ *.c -lfl
 
 clean:
-	rm -f redux.lex.c redux.tab.c redux.tab.h redux
+	rm -f lex.yy.c redux.tab.c redux.tab.h redux
 	

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include "redux.h"
+#include "redux_glue.h"
 
 void yyerror(char *s, ...)
 {
