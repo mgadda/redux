@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		7D2DF6DF14992D3800DD3D46 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D2DF6DE14992D3800DD3D46 /* main.cpp */; };
 		7D2DF6E114992D3800DD3D46 /* redux.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7D2DF6E014992D3800DD3D46 /* redux.1 */; };
+		7D2DF6E814992DDD00DD3D46 /* redux.y in Sources */ = {isa = PBXBuildFile; fileRef = 7D2DF6E714992DDD00DD3D46 /* redux.y */; };
+		7D83A12414A290D900048145 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 7D83A12314A290D900048145 /* Makefile */; };
+		7DC7BA00149BC3F700C76881 /* redux.l in Sources */ = {isa = PBXBuildFile; fileRef = 7DC7B9FF149BC3F700C76881 /* redux.l */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,6 +31,9 @@
 		7D2DF6DA14992D3800DD3D46 /* redux */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = redux; sourceTree = BUILT_PRODUCTS_DIR; };
 		7D2DF6DE14992D3800DD3D46 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		7D2DF6E014992D3800DD3D46 /* redux.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = redux.1; sourceTree = "<group>"; };
+		7D2DF6E714992DDD00DD3D46 /* redux.y */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.yacc; path = redux.y; sourceTree = "<group>"; };
+		7D83A12314A290D900048145 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
+		7DC7B9FF149BC3F700C76881 /* redux.l */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.lex; path = redux.l; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,13 +66,41 @@
 		7D2DF6DD14992D3800DD3D46 /* redux */ = {
 			isa = PBXGroup;
 			children = (
+				7DC7BA01149BC42200C76881 /* documentation */,
+				7DC7B9FF149BC3F700C76881 /* redux.l */,
 				7D2DF6DE14992D3800DD3D46 /* main.cpp */,
-				7D2DF6E014992D3800DD3D46 /* redux.1 */,
+				7D2DF6E714992DDD00DD3D46 /* redux.y */,
+				7D83A12314A290D900048145 /* Makefile */,
 			);
 			path = redux;
 			sourceTree = "<group>";
 		};
+		7DC7BA01149BC42200C76881 /* documentation */ = {
+			isa = PBXGroup;
+			children = (
+				7D2DF6E014992D3800DD3D46 /* redux.1 */,
+			);
+			name = documentation;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
+
+/* Begin PBXLegacyTarget section */
+		7D83A11F14A290A600048145 /* redux_xp */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION)";
+			buildConfigurationList = 7D83A12014A290A600048145 /* Build configuration list for PBXLegacyTarget "redux_xp" */;
+			buildPhases = (
+			);
+			buildToolPath = /usr/bin/make;
+			buildWorkingDirectory = /Users/mgadda/Projects/redux/redux;
+			dependencies = (
+			);
+			name = redux_xp;
+			passBuildSettingsInEnvironment = 1;
+			productName = redux_xp;
+		};
+/* End PBXLegacyTarget section */
 
 /* Begin PBXNativeTarget section */
 		7D2DF6D914992D3800DD3D46 /* redux */ = {
@@ -107,6 +141,7 @@
 			projectRoot = "";
 			targets = (
 				7D2DF6D914992D3800DD3D46 /* redux */,
+				7D83A11F14A290A600048145 /* redux_xp */,
 			);
 		};
 /* End PBXProject section */
@@ -117,6 +152,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				7D2DF6DF14992D3800DD3D46 /* main.cpp in Sources */,
+				7D2DF6E814992DDD00DD3D46 /* redux.y in Sources */,
+				7DC7BA00149BC3F700C76881 /* redux.l in Sources */,
+				7D83A12414A290D900048145 /* Makefile in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -182,6 +220,27 @@
 			};
 			name = Release;
 		};
+		7D83A12114A290A600048145 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUGGING_SYMBOLS = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		7D83A12214A290A600048145 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -199,6 +258,15 @@
 			buildConfigurations = (
 				7D2DF6E514992D3800DD3D46 /* Debug */,
 				7D2DF6E614992D3800DD3D46 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7D83A12014A290A600048145 /* Build configuration list for PBXLegacyTarget "redux_xp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7D83A12114A290A600048145 /* Debug */,
+				7D83A12214A290A600048145 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 		};
