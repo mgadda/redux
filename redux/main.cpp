@@ -13,15 +13,20 @@
 extern int yyparse();
 extern int yylex();
 extern int yydebug;
+extern FILE *yyin;
 
 int main(int argc, const char * argv[])
 {
   //yydebug=1;
-  yyparse();
-  // while(1)
-  //   yylex();
   
-  //std::cout << yylex();
+  if(argc > 1) {
+    if(!(yyin = fopen(argv[1], "r"))) {
+      perror(argv[1]);
+      return 1;
+    }
+  }
+  yyparse();
+  
   //std::cout << programBlock << std::endl;
   return 0;
 }

@@ -1,7 +1,7 @@
 /*%option noyywrap warn yylineno*/
 /*%option noyywrap warn nodefault yylineno*/
 /*%option bison-bridge bison-locations*/
-%option nodefault
+%option noyywrap nodefault yylineno
 
 %{
   #include <string>
@@ -9,7 +9,7 @@
   #include "parser.hpp"
   #define SAVE_TOKEN yylval.string = new std::string(yytext, yyleng)
   #define TOKEN(t) (yylval.token = t)
-  extern "C" int yywrap() { }
+  //extern "C" int yywrap() { }
 %}
 
 %%
