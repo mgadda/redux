@@ -1,10 +1,9 @@
-
 all: redux
-redux: redux.l redux.y redux_glue.h redux_glue.c main.c
-	bison -d redux.y && \
-	flex redux.l && \
-	gcc -o $@ *.c -lfl
+redux: redux.y redux.l main.cpp node.h
+	bison -o parser.cpp redux.y && \
+	flex -o tokens.cpp redux.l && \
+	g++ -g -o $@ parser.cpp tokens.cpp main.cpp
 
 clean:
-	rm -f lex.yy.c redux.tab.c redux.tab.h redux
+	rm -rf redux parser.cpp tokens.cpp parser.hpp redux.dSYM
 	

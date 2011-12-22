@@ -1,10 +1,26 @@
 %{
-  #include <stdio.h>
-  #include "redux_glue.h"  
+  #include "node.h"
+  //DXBlock *programBlock;
+  #define YYDEBUG 1  
+  extern int yylex();
+  void yyerror(const char *s) { printf("ERROR: %s\n", s); }
 %}
 
-%token NUMBER
+%defines
+
+%union {
+  RDXExpression *expr;
+  std::string *string;
+  int token;
+}
+
+%token <string> TINTEGER;
+
+%type <expr> numeric;
+
+%start numeric
 
 %%
-program: NUMBER
+numeric: TINTEGER { $$ = new RDXInteger(atol($1->c_str())); delete $1; }
+
 %%
