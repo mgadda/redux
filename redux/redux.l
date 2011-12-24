@@ -12,7 +12,18 @@
   //extern "C" int yywrap() { }
 %}
 
+%x COMMENT
+
 %%
+ /* C style comments-ish */
+"/#"                  { BEGIN(COMMENT); }
+<COMMENT>([^#]|\n)+|. 
+<COMMENT>"#/"         { BEGIN(INITIAL); }
+<COMMENT><<EOF>>      { printf("Line %d: Unterminated comment\n", yylineno); return 0; } 
+
+ /* Ruby style comments */
+"#".*\n               
+
 [\s\t\n]   
 [0-9]+    { SAVE_TOKEN; return TINTEGER; }
 .         printf("mystery character: %s\n", yytext);
