@@ -14,18 +14,29 @@ extern int yyparse();
 extern int yylex();
 extern int yydebug;
 extern FILE *yyin;
+extern void yyrestart(FILE *input_file);
 
 int main(int argc, const char * argv[])
 {
   //yydebug=1;
   
-  if(argc > 1) {
-    if(!(yyin = fopen(argv[1], "r"))) {
-      perror(argv[1]);
+  if(argc < 2) {
+    yyparse();
+    return 0;
+  }
+    
+  for(int i=1; i<argc; i++) {
+    FILE *f = fopen(argv[1], "r");
+    
+    if(!f) {
+      perror(argv[i]);
       return 1;
     }
+    
+    yyrestart(f);
+    yyparse();
+    fclose(f);
   }
-  yyparse();
   
   //std::cout << programBlock << std::endl;
   return 0;
