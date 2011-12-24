@@ -2,6 +2,7 @@
 /*%option noyywrap warn nodefault yylineno*/
 /*%option bison-bridge bison-locations*/
 %option noyywrap nodefault yylineno
+/*%option outfile="tokens.cpp"*/
 
 %{
   #include <string>
