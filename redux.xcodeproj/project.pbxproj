@@ -60,6 +60,7 @@
 		7D2DF6E714992DDD00DD3D46 /* redux.y */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.yacc; path = redux.y; sourceTree = "<group>"; };
 		7D83A12314A290D900048145 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		7D83A12914A5A52F00048145 /* node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = node.h; sourceTree = "<group>"; };
+		7D83A13014A7909200048145 /* test.rdx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.rdx; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		7DC7B9FF149BC3F700C76881 /* redux.l */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.lex; path = redux.l; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -99,6 +100,7 @@
 				7D2DF6DE14992D3800DD3D46 /* main.cpp */,
 				7D2DF6E714992DDD00DD3D46 /* redux.y */,
 				7D83A12314A290D900048145 /* Makefile */,
+				7D83A13014A7909200048145 /* test.rdx */,
 			);
 			path = redux;
 			sourceTree = "<group>";

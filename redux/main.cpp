@@ -9,7 +9,7 @@
 #include <iostream>
 #include "node.h"
 
-//extern RDXBlock* programBlock;
+extern RDXBlock *programBlock;
 extern int yyparse();
 extern int yylex();
 extern int yydebug;
@@ -18,7 +18,7 @@ extern void yyrestart(FILE *input_file);
 
 int main(int argc, const char * argv[])
 {
-  //yydebug=1;
+  yydebug=1;
   
   if(argc < 2) {
     yyparse();
@@ -35,6 +35,10 @@ int main(int argc, const char * argv[])
     
     yyrestart(f);
     yyparse();
+    
+    if(programBlock)   
+      delete programBlock;
+    
     fclose(f);
   }
   

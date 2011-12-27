@@ -1,26 +1,36 @@
 #include <iostream>
 #include <vector>
 
-class RDXExpression;
-typedef std::vector<RDXExpression*> ExpressionList;
+class RDXObject;
+typedef std::vector<RDXObject*> RDXList;
 
-class RDXNode {
+class RDXObject {
 public:
-  virtual ~RDXNode() {}
+  virtual ~RDXObject() {}
 };
 
-class RDXExpression : RDXNode {
-public:  
+/* one or more expressions */
+class RDXBlock : public RDXObject {
+public:
+  RDXList expressions;
 };
 
-class RDXInteger : public RDXExpression {
+/* (add 1 2) */
+class RDXExpression : public RDXObject {
+public:
+  RDXList elements;
+};
+
+
+class RDXInteger : public RDXObject {
 public:
   long long value;
   RDXInteger(long long value) : value(value) {}
 };
 
-class RDXBlock : public RDXExpression {
-public:  
-  ExpressionList expression;
-  RDXBlock() {}  
+class RDXSymbol : public RDXObject {  
+public:
+  std::string name;
+  RDXSymbol(std::string name) : name(name) {}
 };
+
