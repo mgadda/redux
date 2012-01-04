@@ -1,0 +1,115 @@
+
+
+# this function returns 0 values
+void process_packets() {
+	# instantiate new class, accepts hash as argument
+	Socket s = Socket.new({
+		timeout: 10
+	})
+	
+	# two statements on the same line, delimited by semicolons
+	s.ip_address = "192.168.1.100";	s.port = 25
+	
+	s.connect() 
+	s.send("helo")
+
+	int bytes_to_read = 10
+	data bytes
+	
+  while(bytes != nil) {
+	  bytes = s.recv(bytes_to_read)
+	  # resume here via continuation when bytes are ready
+	}
+			
+	myarray = [1, 2, 3
+    			   4, 5, 6]
+			
+	# nested function
+	# int, float do_something_else(int a, Foo b, ...) {
+	# 	# coroutines can have ? in their names, so can variables
+	# 	bool isArray? = rest.kind_of?(Array)
+	# 		
+	# 	string c, bool d = isArray[0,1]
+	# 		
+	# 	return (int)(b.val + a), (float)(b.val + a) 
+	# }
+	
+	# anonymous function, closure
+	#Function plus5 = int lambda(x) { x + 5 }
+  
+  plus5(2) # == 7
+  
+  plus5.kind_of?(Function) # == true
+  process_packtes.kind_of?(Function) # == true
+	
+	Foo foo
+	int i
+	float f
+  # todo implement string interpolation
+	i= do_something_else(10, foo, myarr.join("\n") + " items found")		
+	
+  #Regex r = /a_regex/
+  
+}
+
+/#
+
+interface DuckLike {
+	feedBread(Bread b)
+	quack()
+}
+
+# A class Bar which implements the DuckLLike interface
+class Bar <DuckLike> {
+	int i
+	
+  # Constructor
+	Foo(int i) {
+		@i = i
+	}
+  
+  # Instane Method
+  do_something() {
+    
+  }
+  
+  # Class Method
+  static a_class_method() {
+    
+  }
+}
+
+# Categories add methods to a class (program wide)
+category Foo -> ForDucks {
+	int aNewMethod() {
+		return 10, 3.4
+	}
+}
+	
+
+	
+class Math {
+  float PI = 3.14159
+}
+
+extern 
+class Socket {  
+  # what does class method look like?
+  static float class_method() {
+    return 10.97987
+  }
+  # @ symbol means "this."
+  # in class definition, this is the Class object
+  # in member function, this is the instance
+  
+  # instance method
+  Data recv() {
+
+  }
+}
+
+# Inheritence 
+class HTTPClient < Socket {
+  
+}
+#/

@@ -1,7 +1,57 @@
+#!/Users/mgadda/Projects/redux/redux/redux
+
 /#
  # Test.rdx
  # It does stuff, hopefully.
  #/
 
-(defun (a b) a)
+# Empty function delcaration and definition, nil return value
+float myfun() {
+}
 
+# Function which returns an integer value
+int gimmeint() {
+  10
+}
+
+# Assignment
+int a = 10
+
+# Addition
+float b = 10 + 20 + 30
+
+# Function Call
+myfun(a, b)
+
+# Subtraction
+c = 10 - 20
+
+
+# Semicolon line terminations 
+a; b
+
+int count = 20
+
+# Hashes
+hash myhash = {
+  a: count + 10,
+  b: 10
+}
+
+# Arrays 
+a = [1,2,b]
+
+# return
+int gimmeint() {
+  return 10 + 20
+  
+  int c = myfun(10, 20)
+}
+
+int a = gimmeint()
+
+# if
+
+# if Else
+
+# if elseif else

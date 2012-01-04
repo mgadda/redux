@@ -36,7 +36,7 @@
 				parser.cpp,
 				parser.hpp,
 			);
-			script = "bison -o ${DERIVED_FILE_DIR}/parser.cpp ${INPUT_FILE_PATH}\n";
+			script = "bison -v -g -o ${DERIVED_FILE_DIR}/parser.cpp ${INPUT_FILE_PATH}\n";
 		};
 /* End PBXBuildRule section */
 
@@ -59,8 +59,9 @@
 		7D2DF6E014992D3800DD3D46 /* redux.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = redux.1; sourceTree = "<group>"; };
 		7D2DF6E714992DDD00DD3D46 /* redux.y */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.yacc; path = redux.y; sourceTree = "<group>"; };
 		7D83A12314A290D900048145 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
-		7D83A12914A5A52F00048145 /* node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = node.h; sourceTree = "<group>"; };
+		7D83A12914A5A52F00048145 /* ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ast.h; sourceTree = "<group>"; };
 		7D83A13014A7909200048145 /* test.rdx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.rdx; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
+		7D83A13914B2490D00048145 /* class.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = class.h; path = redux/class.h; sourceTree = "<group>"; };
 		7DC7B9FF149BC3F700C76881 /* redux.l */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.lex; path = redux.l; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -78,6 +79,7 @@
 		7D2DF6CF14992D3800DD3D46 = {
 			isa = PBXGroup;
 			children = (
+				7D83A13914B2490D00048145 /* class.h */,
 				7D2DF6DD14992D3800DD3D46 /* redux */,
 				7D2DF6DB14992D3800DD3D46 /* Products */,
 			);
@@ -94,7 +96,7 @@
 		7D2DF6DD14992D3800DD3D46 /* redux */ = {
 			isa = PBXGroup;
 			children = (
-				7D83A12914A5A52F00048145 /* node.h */,
+				7D83A12914A5A52F00048145 /* ast.h */,
 				7DC7BA01149BC42200C76881 /* documentation */,
 				7DC7B9FF149BC3F700C76881 /* redux.l */,
 				7D2DF6DE14992D3800DD3D46 /* main.cpp */,
@@ -197,6 +199,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = "-lpthread";
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -216,6 +219,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				OTHER_LDFLAGS = "-lpthread";
 				SDKROOT = macosx;
 			};
 			name = Release;

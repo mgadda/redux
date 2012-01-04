@@ -6,7 +6,7 @@
 
 %{
   #include <string>
-  #include "node.h"
+  #include "ast.h"
   #include "parser.hpp"
   #define SAVE_TOKEN yylval.string = new std::string(yytext, yyleng)
   #define TOKEN(t) (yylval.token = t)
@@ -22,25 +22,39 @@
 <COMMENT>"#/"         { BEGIN(INITIAL); }
 <COMMENT><<EOF>>      { printf("Line %d: Unterminated comment\n", yylineno); return 0; } 
 
- /* Ruby style comments */
-"#".*\n               
+  /* Ruby style comments */
+"#".*                 
+
+  /* Keywords */
+"return"                { return TOKEN(T_RETURN); }
+
+  /* Literals */
+[-+]?[0-9]+\.[0-9]*     { SAVE_TOKEN; return T_FLOAT;}           
+[-+]?[0-9]+             { SAVE_TOKEN; return T_INTEGER;}
+"0x"[-+]?[0-9a-f]+      { SAVE_TOKEN; return T_HEX_INTEGER;}     
+"0b"[-+]?[0-9]+         { SAVE_TOKEN; return T_BIN_INTEGER;}     
+"0o"[-+]?[0-7]+         { SAVE_TOKEN; return T_OCT_INTEGER;}     
+\"[^\"]*\"              { SAVE_TOKEN; return T_STRING;}
+[a-zA-Z][a-zA-Z0-9_\-]*\?? { SAVE_TOKEN; return T_IDENTIFIER;}
+
 
 [ \t\n]+ {}
-\(        { return TOKEN(LPAREN); }
-\)        { return TOKEN(RPAREN); }
-'\''      { return TOKEN(QUOTE); }
-'`'       { return TOKEN(BACKQUOTE); }
-",@"      { return TOKEN(AT_SPLICE); }
-","       { return TOKEN(COMMA); }
+\(        { return TOKEN(T_LPAREN); }
+\)        { return TOKEN(T_RPAREN); }
+\{        { return TOKEN(T_LCURLY); }
+\}        { return TOKEN(T_RCURLY); }
+\[        { return TOKEN(T_LBRACKET); }
+\]        { return TOKEN(T_RBRACKET); }
+","       { return TOKEN(T_COMMA); }
+";"       { return TOKEN(T_SEMICOLON); }
+":"       { return TOKEN(T_COLON); }
+"="       { return TOKEN(T_EQUAL); }
+"!="      { return TOKEN(T_CNOT_EQUAL); }
+"=="      { return TOKEN(T_CEQUAL); }
+\.        { return TOKEN(T_DOT); }
+"+"       { return TOKEN(T_PLUS); }
+"-"       { return TOKEN(T_MINUS); }
 
-
-[-+]?[0-9]+\.[0-9]*     { SAVE_TOKEN; return FLOAT;}           
-[-+]?[0-9]+             { SAVE_TOKEN; return INTEGER;}
-"0x"[-+]?[0-9a-f]+      { SAVE_TOKEN; return HEX_INTEGER;}     
-"0b"[-+]?[0-9]+         { SAVE_TOKEN; return BIN_INTEGER;}     
-"0o"[-+]?[0-7]+         { SAVE_TOKEN; return OCT_INTEGER;}     
-\"[^\"]*\"              { SAVE_TOKEN; return STRING;}
-[a-zA-Z][a-zA-Z0-9_\-]* { SAVE_TOKEN; return SYMBOL;}
 
 
 .                       { printf("mystery character: %x\n", yytext[0]); }
