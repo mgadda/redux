@@ -11,6 +11,9 @@
 #include <pthread.h>
 #include <getopt.h>
 
+#include <llvm/LLVMContext.h>
+#include <llvm/Module.h>
+
 extern redux::Block *programBlock;
 extern int yyparse();
 extern int yylex();
@@ -23,26 +26,28 @@ extern int exit_status;
 void *do_work(void *thread_id);
 
 int main(int argc, char * const argv[])
-{
+{ 
   yydebug=0;
   exit_status=0;
+  bool interactive=false;
   
   int c;
   int index;
   
-  while ((c = getopt(argc, argv, "v")) != -1) {
+  while ((c = getopt(argc, argv, "vi")) != -1) {
     switch (c) {
       case 'v':
         yydebug=1;
         break;
-        
+      case 'i':
+        interactive=true;
       default:
         break;
     }
   }
   
   // case, no non-opt arguments, just parse into from stdin
-  if (optind == argc) {
+  if (optind == argc && !interactive) {
     yyparse();
     return 0;
   }
@@ -61,6 +66,9 @@ int main(int argc, char * const argv[])
 //  }
   
   for (index = optind; index < argc; index++) {
+    llvm::Module *module = new llvm::Module(argv[index], llvm::getGlobalContext()); 
+    CodeGenContext *context = new CodeGenContext(*module);
+    
     FILE *f = fopen(argv[index], "r");
     
     if(!f) {
@@ -77,13 +85,34 @@ int main(int argc, char * const argv[])
     yyparse();
     
     if(programBlock) {
-      std::cout << programBlock << std::endl;
+      std::cout << "\n\nCompiling module " << argv[index] << std::endl;
+      context->generate(*programBlock);
+      module->dump();
       delete programBlock;
     }
-      
-      
+    else {
+      std::cout << "\n\nFailed to compile Module " << argv[index] << std::endl;
+    }
     
+    delete module;
+    delete context;
     fclose(f);
+  }
+  
+  if (interactive) {
+    llvm::Module *module = new llvm::Module("interactive", llvm::getGlobalContext()); 
+    CodeGenContext interactive_context(*module);
+    
+    while(1) {
+      std::cout << "> ";
+      
+      yyrestart(stdin);
+      yyparse();
+        
+      std::cout << "=> " << interactive_context.generate(*programBlock) << std::endl;
+    }
+    
+    // TODO: provide way to exit interactive mode and clean up memory (delete module)
   }
   
 //  pthread_join(worker[0], &status);
@@ -99,7 +128,7 @@ int main(int argc, char * const argv[])
 void *do_work(void *thread_id) {
   
   long wait_time = random()%10;
-  printf("Doing some work on a thread %d for %d seconds.\n",    pthread_self(), wait_time);
+  printf("Doing some work on a thread %lu for %ld seconds.\n", (unsigned long)pthread_self(), wait_time);
   sleep((unsigned int)wait_time);
   printf("done.\n");
   return NULL;

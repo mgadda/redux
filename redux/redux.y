@@ -9,6 +9,8 @@
   extern int yylineno;
   
   int exit_status;
+
+  void yyerror(const char *s, ...);
   
   void yyerror(const char *s, ...) { 
     va_list ap;
@@ -42,7 +44,7 @@
   redux::Integer *integer;
   redux::Float *float_num;
 
-  redux::Keyword *keyword;
+  redux::ReturnKeyword *return_keyword;
   
   redux::NodeList *list;
   redux::Hash *hash;
@@ -57,9 +59,9 @@
 
 %token <token> T_LPAREN T_RPAREN T_LCURLY T_RCURLY T_LBRACKET T_RBRACKET T_COMMA 
 %token <token> T_SEMICOLON T_EQUAL T_DOT T_COLON
-%token <token> T_PLUS T_MINUS
+%token <token> T_PLUS T_MINUS T_MULTIPLY T_DIVIDE
 %token <token> T_RETURN
-%token <token> T_CEQUAL T_CNOT_EQUAL
+%token <token> T_CEQUAL T_CNOT_EQUAL T_CLESS_THAN
 
 %left T_PLUS T_MINUS
 %right T_CEQUAL T_CNOT_EQUAL
@@ -75,7 +77,7 @@
 %type <function_decl> func_decl 
 %type <varlist> func_decl_args
 %type <exprlist> call_args
-%type <keyword> return_statement
+%type <return_keyword> return_statement
 
 %type <list> elementList
 %type <hash> keyValueList
@@ -156,7 +158,8 @@ keyValueList: keyValue /* | keyValueList T_ENDL */
 keyValue: ident T_COLON expression
   ;
 
-binary_operator: T_PLUS | T_MINUS | T_CEQUAL | T_CNOT_EQUAL 
+binary_operator: T_PLUS | T_MINUS | T_MULTIPLY 
+  | T_DIVIDE | T_CEQUAL | T_CNOT_EQUAL | T_CLESS_THAN
   ;
 
 elementList: expression                 /*{ $$ = new RDXList(); $$->push_back($1); }*/
@@ -164,8 +167,8 @@ elementList: expression                 /*{ $$ = new RDXList(); $$->push_back($1
   ;
 
 
-return_statement: T_RETURN expression;
-
+return_statement: T_RETURN expression { $$ = new redux::ReturnKeyword(*$2); }
+  ;
 
 
 %%

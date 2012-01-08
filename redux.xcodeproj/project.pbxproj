@@ -10,6 +10,8 @@
 		7D2DF6DF14992D3800DD3D46 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D2DF6DE14992D3800DD3D46 /* main.cpp */; };
 		7D2DF6E114992D3800DD3D46 /* redux.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7D2DF6E014992D3800DD3D46 /* redux.1 */; };
 		7D2DF6E814992DDD00DD3D46 /* redux.y in Sources */ = {isa = PBXBuildFile; fileRef = 7D2DF6E714992DDD00DD3D46 /* redux.y */; };
+		7D37FE6F14B5817C00265E91 /* codegen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D37FE6E14B5817C00265E91 /* codegen.cpp */; };
+		7D37FE7114B588A400265E91 /* ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D37FE7014B588A400265E91 /* ast.cpp */; };
 		7D83A12414A290D900048145 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 7D83A12314A290D900048145 /* Makefile */; };
 		7DC7BA00149BC3F700C76881 /* redux.l in Sources */ = {isa = PBXBuildFile; fileRef = 7DC7B9FF149BC3F700C76881 /* redux.l */; };
 /* End PBXBuildFile section */
@@ -58,6 +60,9 @@
 		7D2DF6DE14992D3800DD3D46 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		7D2DF6E014992D3800DD3D46 /* redux.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = redux.1; sourceTree = "<group>"; };
 		7D2DF6E714992DDD00DD3D46 /* redux.y */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.yacc; path = redux.y; sourceTree = "<group>"; };
+		7D37FE6D14B43FA400265E91 /* codegen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = codegen.h; sourceTree = "<group>"; };
+		7D37FE6E14B5817C00265E91 /* codegen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = codegen.cpp; sourceTree = "<group>"; };
+		7D37FE7014B588A400265E91 /* ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ast.cpp; sourceTree = "<group>"; };
 		7D83A12314A290D900048145 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		7D83A12914A5A52F00048145 /* ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ast.h; sourceTree = "<group>"; };
 		7D83A13014A7909200048145 /* test.rdx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.rdx; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
@@ -103,6 +108,9 @@
 				7D2DF6E714992DDD00DD3D46 /* redux.y */,
 				7D83A12314A290D900048145 /* Makefile */,
 				7D83A13014A7909200048145 /* test.rdx */,
+				7D37FE6D14B43FA400265E91 /* codegen.h */,
+				7D37FE6E14B5817C00265E91 /* codegen.cpp */,
+				7D37FE7014B588A400265E91 /* ast.cpp */,
 			);
 			path = redux;
 			sourceTree = "<group>";
@@ -171,6 +179,8 @@
 				7D2DF6E814992DDD00DD3D46 /* redux.y in Sources */,
 				7DC7BA00149BC3F700C76881 /* redux.l in Sources */,
 				7D83A12414A290D900048145 /* Makefile in Sources */,
+				7D37FE6F14B5817C00265E91 /* codegen.cpp in Sources */,
+				7D37FE7114B588A400265E91 /* ast.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -197,9 +207,50 @@
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				LIBRARY_SEARCH_PATHS = /usr/local/llvm/lib;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_LDFLAGS = "-lpthread";
+				OTHER_CFLAGS = (
+					"-I/usr/local/llvm/include",
+					"-D_DEBUG",
+					"-D_GNU_SOURCE",
+					"-D__STDC_CONSTANT_MACROS",
+					"-D__STDC_FORMAT_MACROS",
+					"-D__STDC_LIMIT_MACROS",
+					"-fvisibility-inlines-hidden",
+					"-fno-exceptions",
+					"-fno-rtti",
+					"-fno-common",
+					"-Woverloaded-virtual",
+					"-Wcast-qual",
+				);
+				OTHER_LDFLAGS = (
+					"-lpthread",
+					"-lLLVMX86Disassembler",
+					"-lLLVMX86AsmParser",
+					"-lLLVMX86CodeGen",
+					"-lLLVMSelectionDAG",
+					"-lLLVMAsmPrinter",
+					"-lLLVMMCParser",
+					"-lLLVMX86Desc",
+					"-lLLVMX86AsmPrinter",
+					"-lLLVMX86Utils",
+					"-lLLVMX86Info",
+					"-lLLVMJIT",
+					"-lLLVMRuntimeDyld",
+					"-lLLVMExecutionEngine",
+					"-lLLVMCodeGen",
+					"-lLLVMScalarOpts",
+					"-lLLVMInstCombine",
+					"-lLLVMTransformUtils",
+					"-lLLVMipa",
+					"-lLLVMAnalysis",
+					"-lLLVMTarget",
+					"-lLLVMMC",
+					"-lLLVMObject",
+					"-lLLVMCore",
+					"-lLLVMSupport",
+				);
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -218,8 +269,50 @@
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				LIBRARY_SEARCH_PATHS = /usr/local/llvm/lib;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				OTHER_LDFLAGS = "-lpthread";
+				OTHER_CFLAGS = (
+					"-I/usr/local/llvm/include",
+					"-D_DEBUG",
+					"-D_GNU_SOURCE",
+					"-D__STDC_CONSTANT_MACROS",
+					"-D__STDC_FORMAT_MACROS",
+					"-D__STDC_LIMIT_MACROS",
+					"-O3",
+					"-fvisibility-inlines-hidden",
+					"-fno-exceptions",
+					"-fno-rtti",
+					"-fno-common",
+					"-Woverloaded-virtual",
+					"-Wcast-qual",
+				);
+				OTHER_LDFLAGS = (
+					"-lpthread",
+					"-lLLVMX86Disassembler",
+					"-lLLVMX86AsmParser",
+					"-lLLVMX86CodeGen",
+					"-lLLVMSelectionDAG",
+					"-lLLVMAsmPrinter",
+					"-lLLVMMCParser",
+					"-lLLVMX86Desc",
+					"-lLLVMX86AsmPrinter",
+					"-lLLVMX86Utils",
+					"-lLLVMX86Info",
+					"-lLLVMJIT",
+					"-lLLVMRuntimeDyld",
+					"-lLLVMExecutionEngine",
+					"-lLLVMCodeGen",
+					"-lLLVMScalarOpts",
+					"-lLLVMInstCombine",
+					"-lLLVMTransformUtils",
+					"-lLLVMipa",
+					"-lLLVMAnalysis",
+					"-lLLVMTarget",
+					"-lLLVMMC",
+					"-lLLVMObject",
+					"-lLLVMCore",
+					"-lLLVMSupport",
+				);
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -227,14 +320,74 @@
 		7D2DF6E514992D3800DD3D46 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				HEADER_SEARCH_PATHS = /usr/local/llvm/include/llvm;
+				LIBRARY_SEARCH_PATHS = /usr/local/llvm/lib;
+				OTHER_LDFLAGS = (
+					"-lpthread",
+					"-lLLVMX86Disassembler",
+					"-lLLVMX86AsmParser",
+					"-lLLVMX86CodeGen",
+					"-lLLVMSelectionDAG",
+					"-lLLVMAsmPrinter",
+					"-lLLVMMCParser",
+					"-lLLVMX86Desc",
+					"-lLLVMX86AsmPrinter",
+					"-lLLVMX86Utils",
+					"-lLLVMX86Info",
+					"-lLLVMJIT",
+					"-lLLVMRuntimeDyld",
+					"-lLLVMExecutionEngine",
+					"-lLLVMCodeGen",
+					"-lLLVMScalarOpts",
+					"-lLLVMInstCombine",
+					"-lLLVMTransformUtils",
+					"-lLLVMipa",
+					"-lLLVMAnalysis",
+					"-lLLVMTarget",
+					"-lLLVMMC",
+					"-lLLVMObject",
+					"-lLLVMCore",
+					"-lLLVMSupport",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				WARNING_LDFLAGS = "";
 			};
 			name = Debug;
 		};
 		7D2DF6E614992D3800DD3D46 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				HEADER_SEARCH_PATHS = /usr/local/llvm/include/llvm;
+				LIBRARY_SEARCH_PATHS = /usr/local/llvm/lib;
+				OTHER_LDFLAGS = (
+					"-lpthread",
+					"-lLLVMX86Disassembler",
+					"-lLLVMX86AsmParser",
+					"-lLLVMX86CodeGen",
+					"-lLLVMSelectionDAG",
+					"-lLLVMAsmPrinter",
+					"-lLLVMMCParser",
+					"-lLLVMX86Desc",
+					"-lLLVMX86AsmPrinter",
+					"-lLLVMX86Utils",
+					"-lLLVMX86Info",
+					"-lLLVMJIT",
+					"-lLLVMRuntimeDyld",
+					"-lLLVMExecutionEngine",
+					"-lLLVMCodeGen",
+					"-lLLVMScalarOpts",
+					"-lLLVMInstCombine",
+					"-lLLVMTransformUtils",
+					"-lLLVMipa",
+					"-lLLVMAnalysis",
+					"-lLLVMTarget",
+					"-lLLVMMC",
+					"-lLLVMObject",
+					"-lLLVMCore",
+					"-lLLVMSupport",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				WARNING_LDFLAGS = "";
 			};
 			name = Release;
 		};

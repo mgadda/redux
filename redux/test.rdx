@@ -6,49 +6,51 @@
  #/
 
 # Empty function delcaration and definition, nil return value
-float myfun() {
+float get_radius(float x) {
+  34.5 + x
 }
 
 # Function which returns an integer value
-int gimmeint() {
-  10
-}
+float pi() { 3.14159 }
 
 # Assignment
-int a = 10
+#int a = 10
 
 # Addition
-float b = 10 + 20 + 30
+#float b = 10 + 20 + 30
 
 # Function Call
-myfun(a, b)
+#myfun(a, b)
 
 # Subtraction
-c = 10 - 20
+#c = 10 - 20
 
 
 # Semicolon line terminations 
-a; b
+#a; b
 
-int count = 20
+#int count = 20
 
 # Hashes
+/#
 hash myhash = {
   a: count + 10,
   b: 10
 }
+#/
 
 # Arrays 
-a = [1,2,b]
+/#a = [1,2,
+b]#/
 
 # return
-int gimmeint() {
-  return 10 + 20
-  
-  int c = myfun(10, 20)
+float compute_circumference() {
+#  int c = myfun(10, 20)
+#  return 10 + 20  
+  2.0 * pi() * get_radius(10.3)
 }
 
-int a = gimmeint()
+#int a = gimmeint()
 
 # if
 

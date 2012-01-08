@@ -54,6 +54,9 @@
 \.        { return TOKEN(T_DOT); }
 "+"       { return TOKEN(T_PLUS); }
 "-"       { return TOKEN(T_MINUS); }
+"*"       { return TOKEN(T_MULTIPLY); }
+"/"       { return TOKEN(T_DIVIDE); }
+"<"       { return TOKEN(T_CLESS_THAN); }
 
 
 

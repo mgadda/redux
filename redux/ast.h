@@ -1,10 +1,13 @@
 
-#ifndef __AST_H__
-#define __AST_H__
+#ifndef __ast_h__
+#define __ast_h__
 
 #include <iostream>
 #include <vector>
 #include <map>
+
+#include <llvm/Value.h>
+#include "codegen.h"
 
 namespace redux {
 
@@ -17,11 +20,14 @@ namespace redux {
   typedef std::vector<Variable*> VariableList;  
   typedef std::map<std::string, Node*> Hash;
 
-  class Node {
+  class Node {    
   public:
+    int lineno;
+    
     virtual ~Node() {}
     virtual const std::string node_type()=0;
-//    virtual void codeGen();
+    
+    virtual llvm::Value* codeGen(CodeGenContext& context) { return NULL; }    
   };
 
   /* one or more expressions */
@@ -29,6 +35,7 @@ namespace redux {
   public:
     NodeList nodes;
     virtual const std::string node_type() { return "Block"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
   };
   
   class Expression : public Node {    
@@ -43,20 +50,21 @@ namespace redux {
     Prototype(const std::string &return_type,
               const std::string &name, 
               VariableList args)
-    : name(name), args(args), return_type(return_type) {}
+    : return_type(return_type), name(name), args(args) {}
     
     virtual const std::string node_type() { return "Prototype"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
   };
   
   class Function : public Node {
   public:
-    Prototype *proto;
+    Prototype *prototype;
     Block *body;
     
-    Function(Prototype *proto, Block *body) : proto(proto), body(body) {}
+    Function(Prototype *prototype, Block *body) : prototype(prototype), body(body) {}
 
     virtual const std::string node_type() { return "Function"; }
-
+    virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
   };
   
   class FunctionCall : public Expression {
@@ -68,7 +76,7 @@ namespace redux {
       : callee(callee), args(args) {} 
 
     virtual const std::string node_type() { return "FunctionCall"; }
-
+    virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
   };
   
   class Identifier : public Expression {
@@ -77,6 +85,7 @@ namespace redux {
     Identifier(const std::string &name) : name(name) {}
     
     virtual const std::string node_type() { return "Identifier"; }    
+    virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
   };
 
   class Variable : public Node {
@@ -88,14 +97,16 @@ namespace redux {
     Variable(std::string type, std::string name) : name(name), type(type) {}
 
     virtual const std::string node_type() { return "Variable"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
   };
   
   class Integer : public Expression {
   public:
-    long long value;
+    int64_t value;
     Integer(long long value) : value(value) {}
 
     virtual const std::string node_type() { return "Integer"; }    
+    virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
   };
   
   class Float : public Expression {
@@ -103,18 +114,20 @@ namespace redux {
     double value;
     Float(double value) : value(value) {}
     virtual const std::string node_type() { return "Float"; }        
+    virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
   };
   
   class BinaryOperator : public Expression {
   public:
-    char operation; // +, -, !=, ==
+    int operation; // T_PLUS, T_MINUS, T_CEQUAL, etc
     Expression *lhs;
     Expression *rhs;
     
-    BinaryOperator(char operation, Expression *lhs, Expression *rhs)
+    BinaryOperator(int operation, Expression *lhs, Expression *rhs)
       : operation(operation), lhs(lhs), rhs(rhs) {}
 
     virtual const std::string node_type() { return "BinaryOperator"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
     
   };
   
@@ -127,13 +140,17 @@ namespace redux {
       : var_name(var_name), value(value) {}
 
     virtual const std::string node_type() { return "Assignment"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
 
   };
   
-  class Keyword : public Node {
+  class ReturnKeyword : public Node {
   public:
-    Keyword() {}
+    Expression &returnExpression;
+    
+    ReturnKeyword(Expression &returnExpression) : returnExpression(returnExpression) {}
     virtual const std::string node_type() { return "Keyword"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
 
   };
 }
