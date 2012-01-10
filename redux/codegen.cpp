@@ -69,6 +69,13 @@ Value *CodeGenContext::generate(redux::Function &function) {
     
     return fun;
   }
+  else {
+    // empty function, returns 0, 0.0 or void
+    //builder.CreateRet(ConstantInt::get(getGlobalContext(), APInt(1, 0, true)));
+    builder.CreateRet(UndefValue::get(fun->getReturnType()));
+    verifyFunction(*fun);
+    return fun;
+  }
    
   fun->eraseFromParent();
   return NULL;
