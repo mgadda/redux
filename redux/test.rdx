@@ -50,6 +50,14 @@ float compute_circumference() {
   2.0 * pi() * get_radius(10.3)
 }
 
+bool gt(int x, int y) {
+  y < x
+}
+
+int main() {
+  gt(10, 12)
+  0
+}
 #int a = gimmeint()
 
 # if

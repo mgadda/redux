@@ -27,7 +27,7 @@ namespace redux {
     virtual ~Node() {}
     virtual const std::string node_type()=0;
     
-    virtual llvm::Value* codeGen(CodeGenContext& context) { return NULL; }    
+    virtual llvm::Value* codeGen(CodeGenContext& context)=0;
   };
 
   /* one or more expressions */
