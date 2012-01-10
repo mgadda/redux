@@ -38,7 +38,8 @@
 [a-zA-Z][a-zA-Z0-9_\-]*\?? { SAVE_TOKEN; return T_IDENTIFIER;}
 
 
-[ \t\n]+ {}
+[ \t]+ {}
+\n        { return TOKEN(T_NEWLINE); }
 \(        { return TOKEN(T_LPAREN); }
 \)        { return TOKEN(T_RPAREN); }
 \{        { return TOKEN(T_LCURLY); }

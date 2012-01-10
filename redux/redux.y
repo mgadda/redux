@@ -2,7 +2,8 @@
 %{
   #include <stdlib.h>
   #include "ast.h"
-  redux::Block *programBlock;
+  redux::Block *fileBlock;
+  redux::Node *topLevelNode;
   
   #define YYDEBUG 1  
   extern int yylex();
@@ -58,7 +59,7 @@
 %token <string> T_IDENTIFIER T_INTEGER T_HEX_INTEGER T_BIN_INTEGER T_OCT_INTEGER T_STRING T_FLOAT
 
 %token <token> T_LPAREN T_RPAREN T_LCURLY T_RCURLY T_LBRACKET T_RBRACKET T_COMMA 
-%token <token> T_SEMICOLON T_EQUAL T_DOT T_COLON
+%token <token> T_SEMICOLON T_EQUAL T_DOT T_COLON T_NEWLINE
 %token <token> T_PLUS T_MINUS T_MULTIPLY T_DIVIDE
 %token <token> T_RETURN
 %token <token> T_CEQUAL T_CNOT_EQUAL T_CLESS_THAN
@@ -68,8 +69,8 @@
 
 %type <token> binary_operator
 
-%type <block> program statements block
-%type <node> statement
+%type <block> file statements block
+%type <node> statement console
 %type <expression> expression numeric
 %type <identifier> ident
 
@@ -83,24 +84,42 @@
 %type <hash> keyValueList
 
 %locations 
+%error-verbose
+  //%expect 14
 
-%start program
+%start file
+  //%start console
 
 %%
 
 empty: /* nothing */
 ;
 
-program: statements         { programBlock = $1; }
+file: statements         { fileBlock = $1; }
+  | newlines statements  { fileBlock = $2; }
   ;
 
+console: interactive_statement T_NEWLINE { topLevelNode = $<node>1; YYACCEPT; }
+;
+
+interactive_statement: var_decl     
+  | func_decl            
+  | expression           
+  | return_statement     
+  ;
+  
 statements: statement       { $$ = new redux::Block(); $$->nodes.push_back($<expression>1); }
   | statements statement    { $1->nodes.push_back($<expression>2); }
   ;
 
-eos: empty
+eos: newlines
   | T_SEMICOLON
+  ;
 
+newlines: T_NEWLINE
+  | newlines T_NEWLINE
+  ; 
+  
 statement: var_decl eos     { $$ = $1; }
   | func_decl eos           { $$ = $1; }
   | expression eos          { $$ = $1; }
@@ -130,7 +149,9 @@ func_decl: ident ident T_LPAREN func_decl_args T_RPAREN block
     }    
   ;
 
-block: T_LCURLY statements T_RCURLY   { $$ = $2; }
+block: T_LCURLY newlines statements T_RCURLY   { $$ = $3; }
+  | T_LCURLY statements T_RCURLY      { $$ = $2; }
+  | T_LCURLY newlines T_RCURLY                 { $$ = new redux::Block(); }
   | T_LCURLY T_RCURLY                 { $$ = new redux::Block(); }
   ;
 

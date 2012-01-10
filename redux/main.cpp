@@ -14,7 +14,8 @@
 #include <llvm/LLVMContext.h>
 #include <llvm/Module.h>
 
-extern redux::Block *programBlock;
+extern redux::Block *fileBlock;
+extern redux::Node *topLevelNode;
 extern int yyparse();
 extern int yylex();
 extern int yydebug;
@@ -84,11 +85,11 @@ int main(int argc, char * const argv[])
     yylineno = 1;
     yyparse();
     
-    if(programBlock) {
+    if(fileBlock) {
       std::cout << "\n\nCompiling module " << argv[index] << std::endl;
-      context->generate(*programBlock);
+      context->generate(*fileBlock);
       module->dump();
-      delete programBlock;
+      delete fileBlock;
     }
     else {
       std::cout << "\n\nFailed to compile Module " << argv[index] << std::endl;
@@ -103,13 +104,20 @@ int main(int argc, char * const argv[])
     llvm::Module *module = new llvm::Module("interactive", llvm::getGlobalContext()); 
     CodeGenContext interactive_context(*module);
     
+    //isatty(1);
+    
     while(1) {
       std::cout << "> ";
       
       yyrestart(stdin);
       yyparse();
-        
-      std::cout << "=> " << interactive_context.generate(*programBlock) << std::endl;
+            
+      if (topLevelNode) 
+        topLevelNode->codeGen(interactive_context)->dump();
+      
+      //interactive_context.generate(*topLevelNode)->dump();
+      
+      //std::cout << "=> " << interactive_context.generate(*fileBlock) << std::endl;
     }
     
     // TODO: provide way to exit interactive mode and clean up memory (delete module)
@@ -119,18 +127,18 @@ int main(int argc, char * const argv[])
 //  pthread_join(worker[1], &status);
 //  
 //  pthread_exit(NULL);
-  //std::cout << programBlock << std::endl;
+  //std::cout << fileBlock << std::endl;
   if (exit_status) exit(exit_status);
   
   return 0;
 }
 
-void *do_work(void *thread_id) {
-  
-  long wait_time = random()%10;
-  printf("Doing some work on a thread %lu for %ld seconds.\n", (unsigned long)pthread_self(), wait_time);
-  sleep((unsigned int)wait_time);
-  printf("done.\n");
-  return NULL;
-}
-
+//void *do_work(void *thread_id) {
+//  
+//  long wait_time = random()%10;
+//  printf("Doing some work on a thread %lu for %ld seconds.\n", (unsigned long)pthread_self(), wait_time);
+//  sleep((unsigned int)wait_time);
+//  printf("done.\n");
+//  return NULL;
+//}
+//
