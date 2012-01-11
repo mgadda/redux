@@ -9,5 +9,5 @@ graph: redux
 
   
 clean:
-	rm -rf redux parser.cpp tokens.cpp parser.hpp parser.dot parser.svg redux.dSYM 
+	rm -rf redux parser.cpp tokens.cpp parser.hpp parser.dot parser.svg parser.output redux.dSYM 
 	
