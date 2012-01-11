@@ -10,6 +10,7 @@
 #include "ast.h"
 #include <pthread.h>
 #include <getopt.h>
+#include "parser.hpp"
 
 #include <llvm/LLVMContext.h>
 #include <llvm/Module.h>
@@ -23,6 +24,8 @@ extern FILE *yyin;
 extern void yyrestart(FILE *input_file);
 extern int yylineno;
 extern int exit_status;
+
+extern int start_token;
 
 void *do_work(void *thread_id);
 
@@ -77,6 +80,7 @@ int main(int argc, char * const argv[])
       return 1;
     }
     
+    start_token = START_FILE;
     yyrestart(f);
 //    int t;
 //    while ((t = yylex())) {
@@ -109,6 +113,7 @@ int main(int argc, char * const argv[])
     while(1) {
       std::cout << "> ";
       
+      start_token = START_CONSOLE;
       yyrestart(stdin);
       yyparse();
             

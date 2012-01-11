@@ -83,15 +83,20 @@
 %type <list> elementList
 %type <hash> keyValueList
 
+%token START_FILE
+%token START_CONSOLE
+
 %locations 
 %error-verbose
   //%expect 14
 
-%start file
-  //%start console
+%start start
 
 %%
 
+start: START_FILE file
+  | START_CONSOLE console;
+  
 empty: /* nothing */
 ;
 

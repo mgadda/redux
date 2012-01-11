@@ -11,11 +11,21 @@
   #define SAVE_TOKEN yylval.string = new std::string(yytext, yyleng)
   #define TOKEN(t) (yylval.token = t)
   //extern "C" int yywrap() { }
+  
+  int start_token;
 %}
 
 %x COMMENT
 
 %%
+%{
+  if (start_token) {
+    int t = start_token;
+    start_token = 0;
+    return t;
+  }
+%}
+
  /* C style comments-ish */
 "/#"                  { BEGIN(COMMENT); }
 <COMMENT>([^#]|\n)+|. 
