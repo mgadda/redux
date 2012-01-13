@@ -56,7 +56,7 @@
   int token;
 }
 
-%token <string> T_IDENTIFIER T_INTEGER T_HEX_INTEGER T_BIN_INTEGER T_OCT_INTEGER T_STRING T_FLOAT
+%token <string> T_IDENTIFIER T_INTEGER T_HEX_INTEGER T_BIN_INTEGER T_OCT_INTEGER T_STRING T_FLOAT T_TRUE T_FALSE
 
 %token <token> T_LPAREN T_RPAREN T_LCURLY T_RCURLY T_LBRACKET T_RBRACKET T_COMMA 
 %token <token> T_SEMICOLON T_EQUAL T_DOT T_COLON T_NEWLINE
@@ -71,7 +71,7 @@
 
 %type <block> file statements block
 %type <node> statement console
-%type <expression> expression numeric
+%type <expression> expression numeric bool
 %type <identifier> ident
 
 %type <variable_decl> var_decl 
@@ -88,7 +88,7 @@
 
 %locations 
 %error-verbose
-  //%expect 14
+%expect 14
 
 %start start
 
@@ -110,7 +110,6 @@ console: interactive_statement T_NEWLINE { topLevelNode = $<node>1; YYACCEPT; }
 interactive_statement: var_decl     
   | func_decl            
   | expression           
-  | return_statement     
   ;
   
 statements: statement       { $$ = new redux::Block(); $$->nodes.push_back($<expression>1); }
@@ -140,6 +139,7 @@ expression: ident T_EQUAL expression                { $$ = new redux::Assignment
   | T_LPAREN expression T_RPAREN                    { $$ = $2; } /* grouping () */
   | T_LBRACKET elementList T_RBRACKET   /*{ $$ = new RDXExpression(); $$->elements = *$2; }*/
   | numeric                                         { $$ = $1; } /* 10, -3, 1.4345 */
+  | bool                                            { $$ = $1; }
   | ident                                           { $$ = $1; } /* Foo, Bar */
   ;
 
@@ -175,6 +175,10 @@ ident: T_IDENTIFIER                   { $$ = new redux::Identifier(*$1); }
  
 numeric: T_INTEGER                    { $$ = new redux::Integer(atol($1->c_str())); delete $1; } /*{ $$ = new RDXInteger(atol($1->c_str())); delete $1; }*/
   | T_FLOAT                           { $$ = new redux::Float(atof($1->c_str())); delete $1; }
+  ;
+
+bool: T_TRUE                          { $$ = new redux::Boolean(true); }
+  | T_FALSE                           { $$ = new redux::Boolean(false); }
   ;
 
 keyValueList: keyValue /* | keyValueList T_ENDL */  

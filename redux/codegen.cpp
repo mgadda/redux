@@ -281,6 +281,10 @@ Value *CodeGenContext::generate(redux::Float &float_val) {
   return ConstantFP::get(getGlobalContext(), APFloat(float_val.value));
 }
 
+Value *CodeGenContext::generate(redux::Boolean &bool_val) {
+  return ConstantInt::get(getGlobalContext(), APInt(1, bool_val.truthiness, false));
+}
+
 CodeGenContext::~CodeGenContext() {
   if (mainFunction) delete mainFunction;
 }

@@ -117,6 +117,14 @@ namespace redux {
     virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
   };
   
+  class Boolean : public Expression {
+  public:
+    bool truthiness;
+    Boolean(bool value) : truthiness(value) {}
+    virtual const std::string node_type() { return "Bool"; }        
+    virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }    
+  };
+  
   class BinaryOperator : public Expression {
   public:
     int operation; // T_PLUS, T_MINUS, T_CEQUAL, etc

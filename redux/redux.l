@@ -39,6 +39,8 @@
 "return"                { return TOKEN(T_RETURN); }
 
   /* Literals */
+"true"                  { return T_TRUE; }
+"false"                  { return T_FALSE; }
 [-+]?[0-9]+\.[0-9]*     { SAVE_TOKEN; return T_FLOAT;}           
 [-+]?[0-9]+             { SAVE_TOKEN; return T_INTEGER;}
 "0x"[-+]?[0-9a-f]+      { SAVE_TOKEN; return T_HEX_INTEGER;}     

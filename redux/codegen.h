@@ -26,6 +26,7 @@ namespace redux {
   class Identifier;
   class Float;
   class Integer;
+  class Boolean;
   class ReturnKeyword;
 }
 
@@ -64,6 +65,7 @@ public:
   llvm::Value *generate(redux::ReturnKeyword &return_keyword);    
   llvm::Value *generate(redux::Integer &integer);
   llvm::Value *generate(redux::Float &float_val);
+  llvm::Value *generate(redux::Boolean &bool_val);
   
   static llvm::Type *llvmTypeForString(std::string &type);
 };
