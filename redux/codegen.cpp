@@ -21,9 +21,23 @@
 using namespace llvm;
 
 CodeGenContext::CodeGenContext(Module &module) 
-  : module(module), builder(*new IRBuilder<>(getGlobalContext())) 
+  : module(module)//, builder(*new IRBuilder<>(getGlobalContext())) 
 {  
 }
+
+
+llvm::IRBuilder<> &CodeGenContext::builder() { 
+  return *builder_stack.top(); 
+}
+
+void CodeGenContext::pop_builder() { 
+  delete builder_stack.top(); builder_stack.pop(); 
+}
+
+void CodeGenContext::push_builder() { 
+  builder_stack.push(new llvm::IRBuilder<>(llvm::getGlobalContext()));
+}
+
 
 Value *CodeGenContext::generate(redux::Block &block) {
 
@@ -38,7 +52,7 @@ Value *CodeGenContext::generate(redux::Block &block) {
   // TODO: iterate over all nodes calling codegen on each.
   // no need to do anything with the value, codegen() itself causes insertion into module
   Value *last=NULL;
-  for (redux::NodeList::iterator it = block.nodes.begin(); it != block.nodes.end(); it++) {
+  for (redux::NodeList::iterator it = block.nodes.begin(); it != block.nodes.end(); ++it) {
     
     last = (**it).codeGen(*this);
   }
@@ -47,6 +61,7 @@ Value *CodeGenContext::generate(redux::Block &block) {
 
 Value *CodeGenContext::generate(redux::Function &function) {
   namedValues.clear();
+  push_builder();
   
   // function should expect to already have its prototype set
   //printf("Defining function %s\n", function.prototype->name.c_str());
@@ -58,11 +73,11 @@ Value *CodeGenContext::generate(redux::Function &function) {
   }
   
   BasicBlock *basic_block = BasicBlock::Create(getGlobalContext(), "entry", fun);
-  builder.SetInsertPoint(basic_block);
+  builder().SetInsertPoint(basic_block);
   
   // Return value is value of last node in function block
   if (Value *return_val = function.body->codeGen(*this)) {
-    builder.CreateRet(return_val);
+    builder().CreateRet(return_val);
     
     // Validate the generated code, checking for consistency.
     verifyFunction(*fun);
@@ -71,12 +86,16 @@ Value *CodeGenContext::generate(redux::Function &function) {
   }
   else {
     // empty function, returns 0, 0.0 or void
-    //builder.CreateRet(ConstantInt::get(getGlobalContext(), APInt(1, 0, true)));
-    builder.CreateRet(UndefValue::get(fun->getReturnType()));
+    //builder().CreateRet(ConstantInt::get(getGlobalContext(), APInt(1, 0, true)));
+    builder().CreateRet(UndefValue::get(fun->getReturnType()));
     verifyFunction(*fun);
+    pop_builder();
+    
     return fun;
   }
-   
+  
+  pop_builder();
+  
   fun->eraseFromParent();
   return NULL;
 }
@@ -147,13 +166,13 @@ Value *CodeGenContext::generate(redux::FunctionCall &function_call) {
     fprintf(stderr, "wrong number of arguments passed to %s", function_call.callee.c_str());
     return 0;
   }
-  
+
   std::vector<Value*> callee_args;
   for (size_t i=0, e=function_call.args.size(); i!=e; ++i) {
     callee_args.push_back(function_call.args[i]->codeGen(*this));
   }
   
-  return builder.CreateCall(callee, callee_args, "calltmp");
+  return builder().CreateCall(callee, callee_args, "calltmp");
 }
 
 Value *CodeGenContext::generate(redux::BinaryOperator &bin_operator) {
@@ -169,25 +188,25 @@ Value *CodeGenContext::generate(redux::BinaryOperator &bin_operator) {
   if (left_value->getType() == Type::getInt64Ty(getGlobalContext())) {
     switch (bin_operator.operation) {
       case T_PLUS:
-        return builder.CreateAdd(left_value, right_value);
+        return builder().CreateAdd(left_value, right_value);
         break;
       case T_MINUS:
-        return builder.CreateSub(left_value, right_value);
+        return builder().CreateSub(left_value, right_value);
         break;
       case T_MULTIPLY:
-        return builder.CreateMul(left_value, right_value);
+        return builder().CreateMul(left_value, right_value);
         break;
       case T_DIVIDE:
-        return builder.CreateSDiv(left_value, right_value);
+        return builder().CreateSDiv(left_value, right_value);
         break;
       case T_CLESS_THAN:
-        return builder.CreateICmpULT(left_value, right_value);
+        return builder().CreateICmpULT(left_value, right_value);
         break;
       case T_CEQUAL:
-        return builder.CreateICmpEQ(left_value, right_value);
+        return builder().CreateICmpEQ(left_value, right_value);
         break;
       case T_CNOT_EQUAL:
-        return builder.CreateICmpNE(left_value, right_value);
+        return builder().CreateICmpNE(left_value, right_value);
         break;
       default:
         break;
@@ -197,25 +216,25 @@ Value *CodeGenContext::generate(redux::BinaryOperator &bin_operator) {
   else if (left_value->getType() == Type::getDoubleTy(getGlobalContext())) {
     switch (bin_operator.operation) {
       case T_PLUS:
-        return builder.CreateFAdd(left_value, right_value);
+        return builder().CreateFAdd(left_value, right_value);
         break;
       case T_MINUS:
-        return builder.CreateFSub(left_value, right_value);
+        return builder().CreateFSub(left_value, right_value);
         break;
       case T_MULTIPLY:
-        return builder.CreateFMul(left_value, right_value);
+        return builder().CreateFMul(left_value, right_value);
         break;
       case T_DIVIDE:
-        return builder.CreateSDiv(left_value, right_value);
+        return builder().CreateSDiv(left_value, right_value);
         break;
       case T_CLESS_THAN:
-        return builder.CreateFCmpULT(left_value, right_value);
+        return builder().CreateFCmpULT(left_value, right_value);
         break;
       case T_CEQUAL:
-        return builder.CreateFCmpUEQ(left_value, right_value);
+        return builder().CreateFCmpUEQ(left_value, right_value);
         break;
       case T_CNOT_EQUAL:
-        return builder.CreateFCmpUNE(left_value, right_value);
+        return builder().CreateFCmpUNE(left_value, right_value);
         break;
       default:
         break;
@@ -248,7 +267,7 @@ Value *CodeGenContext::generate(redux::Identifier &identifier) {
 
 Value *CodeGenContext::generate(redux::ReturnKeyword &return_keyword) {
   // TODO: ensure returnExpression evaluates to same type as function prototype
-  return builder.CreateRet(return_keyword.returnExpression.codeGen(*this));
+  return builder().CreateRet(return_keyword.returnExpression.codeGen(*this));
 }
 
 Value *CodeGenContext::generate(redux::Integer &integer) {
@@ -263,7 +282,6 @@ Value *CodeGenContext::generate(redux::Float &float_val) {
 }
 
 CodeGenContext::~CodeGenContext() {
-  delete &builder;
   if (mainFunction) delete mainFunction;
 }
 
@@ -272,11 +290,14 @@ llvm::Type *CodeGenContext::llvmTypeForString(std::string &type) {
   if (type == "int") {
     return Type::getInt64Ty(getGlobalContext());
   }
-  else if (type == "float") {
+  else if (type == "float" || type == "double") {
     return Type::getDoubleTy(getGlobalContext());
   }
   else if (type == "bool") {
     return Type::getInt1Ty(getGlobalContext());
+  }
+  else if (type == "void") {
+    return Type::getVoidTy(getGlobalContext());
   }
   return NULL;
 }

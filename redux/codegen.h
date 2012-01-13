@@ -41,10 +41,14 @@ class CodeGenContext {
   std::stack<CodeGenBlock*> blocks;
   llvm::Function *mainFunction; // needed for full compilation, but not not JIT
   llvm::Module &module;
-  llvm::IRBuilder<> &builder;
   std::map<std::string, llvm::Value*> namedValues;
-  
+
+  std::stack<llvm::IRBuilder<> *> builder_stack;
 public:
+  llvm::IRBuilder<> &builder();
+  void pop_builder();
+  void push_builder();
+    
   CodeGenContext(llvm::Module &module);
   ~CodeGenContext();
   
