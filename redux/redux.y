@@ -35,6 +35,7 @@
 
   redux::Function *function_decl;
   redux::FunctionCall *function_call;
+  redux::Prototype *function_proto;
   
   redux::Variable *variable_decl;  
   redux::VariableList *varlist;
@@ -61,7 +62,7 @@
 %token <token> T_LPAREN T_RPAREN T_LCURLY T_RCURLY T_LBRACKET T_RBRACKET T_COMMA 
 %token <token> T_SEMICOLON T_EQUAL T_DOT T_COLON T_NEWLINE
 %token <token> T_PLUS T_MINUS T_MULTIPLY T_DIVIDE
-%token <token> T_RETURN
+%token <token> T_RETURN T_EXTERN
 %token <token> T_CEQUAL T_CNOT_EQUAL T_CLESS_THAN
 
 %left T_PLUS T_MINUS
@@ -76,6 +77,7 @@
 
 %type <variable_decl> var_decl 
 %type <function_decl> func_decl 
+%type <function_proto> func_prototype 
 %type <varlist> func_decl_args
 %type <exprlist> call_args
 %type <return_keyword> return_statement
@@ -109,6 +111,7 @@ console: interactive_statement T_NEWLINE { topLevelNode = $<node>1; YYACCEPT; }
 
 interactive_statement: var_decl     
   | func_decl            
+  | func_prototype
   | expression           
   ;
   
@@ -126,6 +129,7 @@ newlines: T_NEWLINE
   
 statement: var_decl eos     { $$ = $1; }
   | func_decl eos           { $$ = $1; }
+  | func_prototype eos      { $$ = $1; }
   | expression eos          { $$ = $1; }
   | return_statement eos    { $$ = $1; }
   ;
@@ -154,6 +158,9 @@ func_decl: ident ident T_LPAREN func_decl_args T_RPAREN block
     }    
   ;
 
+func_prototype: T_EXTERN ident ident T_LPAREN func_decl_args T_RPAREN    { $$ = new redux::Prototype($2->name, $3->name, *$5); }
+  ;
+  
 block: T_LCURLY newlines statements T_RCURLY   { $$ = $3; }
   | T_LCURLY statements T_RCURLY      { $$ = $2; }
   | T_LCURLY newlines T_RCURLY                 { $$ = new redux::Block(); }
