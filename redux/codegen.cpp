@@ -135,7 +135,7 @@ Value *CodeGenContext::generate(redux::Prototype &prototype) {
     // If function's arg length is different, reject
     if (function->arg_size() != prototype.args.size()) {
       fprintf(stderr, 
-              "redefinition of function %s with different number of arguments (%lu and %lu)", 
+              "redefinition of function %s with different number of arguments (%lu and %lu)\n", 
               prototype.name.c_str(), 
               function->arg_size(), 
               prototype.args.size());
@@ -158,12 +158,12 @@ Value *CodeGenContext::generate(redux::Prototype &prototype) {
 Value *CodeGenContext::generate(redux::FunctionCall &function_call) {
   llvm::Function *callee = module.getFunction(function_call.callee);
   if (callee == NULL) {
-    fprintf(stderr, "undefined function %s", function_call.callee.c_str());
+    fprintf(stderr, "undefined function %s\n", function_call.callee.c_str());
     return 0;
   }
   
   if (callee->arg_size() != function_call.args.size()) {
-    fprintf(stderr, "wrong number of arguments passed to %s", function_call.callee.c_str());
+    fprintf(stderr, "wrong number of arguments passed to %s\n", function_call.callee.c_str());
     return 0;
   }
 

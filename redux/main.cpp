@@ -167,7 +167,7 @@ int main(int argc, char * const argv[])
         builder.CreateRet(value);
 
         
-        tlf->dump();
+        //tlf->dump();
         
         llvm::verifyFunction(*tlf);
         
