@@ -225,7 +225,7 @@ Value *CodeGenContext::generate(redux::BinaryOperator &bin_operator) {
         return builder().CreateFMul(left_value, right_value);
         break;
       case T_DIVIDE:
-        return builder().CreateSDiv(left_value, right_value);
+        return builder().CreateFDiv(left_value, right_value);
         break;
       case T_CLESS_THAN:
         return builder().CreateFCmpULT(left_value, right_value);
