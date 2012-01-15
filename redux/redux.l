@@ -38,6 +38,9 @@
   /* Keywords */
 "return"                { return TOKEN(T_RETURN); }
 "extern"                { return T_EXTERN; }
+"if"                    { return T_IF; }
+"elsif"                 { return T_ELSIF; }
+"else"                  { return T_ELSE; }
 
   /* Literals */
 "true"                  { return T_TRUE; }

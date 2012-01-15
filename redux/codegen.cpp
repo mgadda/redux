@@ -285,6 +285,10 @@ Value *CodeGenContext::generate(redux::Boolean &bool_val) {
   return ConstantInt::get(getGlobalContext(), APInt(1, bool_val.truthiness, false));
 }
 
+Value *CodeGenContext::generate(redux::IfElse &if_else) {
+  return NULL;
+}
+
 CodeGenContext::~CodeGenContext() {
   if (mainFunction) delete mainFunction;
 }
