@@ -74,7 +74,7 @@
 
 %type <block> file statements block elsif
 %type <node> statement console
-%type <expression> expression numeric bool
+%type <expression> expression numeric bool func_call
 %type <identifier> ident
 
 %type <variable_decl> var_decl 
@@ -94,7 +94,7 @@
 
 %locations 
 %error-verbose
-%expect 14
+  //%expect 14
 
 %start start
 
@@ -104,10 +104,9 @@ start: START_FILE file
   | START_CONSOLE console;
   
 file: statements         { fileBlock = $1; }
-  | newlines statements  { fileBlock = $2; }
   ;
 
-console: interactive_statement T_NEWLINE { topLevelNode = $<node>1; YYACCEPT; }
+console: interactive_statement { topLevelNode = $<node>1; YYACCEPT; }
 ;
 
 interactive_statement: var_decl     
@@ -120,27 +119,30 @@ statements: statement       { $$ = new redux::Block(); $$->nodes.push_back($<exp
   | statements statement    { $1->nodes.push_back($<expression>2); }
   ;
 
-statement: var_decl eos     { $$ = $1; }
-  | func_decl eos           { $$ = $1; }
-  | func_prototype eos      { $$ = $1; }
-  | expression eos          { $$ = $1; }
-  | return_statement eos    { $$ = $1; }
+statement: var_decl      { $$ = $1; }
+  | func_decl            { $$ = $1; }
+  | func_prototype       { $$ = $1; }
+  | expression           { $$ = $1; }
+  | return_statement     { $$ = $1; }
   ;
 
   
 expression: ident T_EQUAL expression                { $$ = new redux::Assignment($1->name, $3); } 
-  | ident T_LPAREN call_args T_RPAREN               { $$ = new redux::FunctionCall($1->name, *$3); } /* method call */
-  | ident T_DOT ident T_LPAREN call_args T_RPAREN 
+  | func_call                                       { $$ = $1; }
   | T_LCURLY keyValueList T_RCURLY   /* hash declaration */
   | expression binary_operator expression           { $$ = new redux::BinaryOperator($2, $1, $3); }   /* method call via binary operator */ 
   | T_LPAREN expression T_RPAREN                    { $$ = $2; } /* grouping () */
   | T_LBRACKET elementList T_RBRACKET   /*{ $$ = new RDXExpression(); $$->elements = *$2; }*/
   | numeric                                         { $$ = $1; } /* 10, -3, 1.4345 */
   | bool                                            { $$ = $1; }
-  | ident                                           { $$ = $1; } /* Foo, Bar */
+  | ident                                           { $$ = $1; } /* Foo, bar */
   | if_stmt                                         { $$ = $1; }
   ;
 
+func_call: ident T_LPAREN call_args T_RPAREN        { $$ = new redux::FunctionCall($1->name, *$3); } /* method call */
+  | ident T_DOT ident T_LPAREN call_args T_RPAREN   
+  ;
+  
 var_decl: ident ident                   { $$ = new redux::Variable($1->name, $2->name); }
   | ident ident T_EQUAL expression      { $$ = new redux::Variable($1->name, $2->name); $$->value = $4; }
   ;
@@ -155,9 +157,7 @@ func_decl: ident ident T_LPAREN func_decl_args T_RPAREN block
 func_prototype: T_EXTERN ident ident T_LPAREN func_decl_args T_RPAREN    { $$ = new redux::Prototype($2->name, $3->name, *$5); }
   ;
   
-block: T_LCURLY newlines statements T_RCURLY   { $$ = $3; }
-  | T_LCURLY statements T_RCURLY      { $$ = $2; }
-  | T_LCURLY newlines T_RCURLY                 { $$ = new redux::Block(); }
+block: T_LCURLY statements T_RCURLY   { $$ = $2; }
   | T_LCURLY T_RCURLY                 { $$ = new redux::Block(); }
   ;
 
@@ -217,15 +217,7 @@ return_statement: T_RETURN expression { $$ = new redux::ReturnKeyword(*$2); }
 empty: /* nothing */
   ;
 
-eos: newlines
-  | T_SEMICOLON
-  ;
-
-  
-newlines: T_NEWLINE
-  | newlines T_NEWLINE
-  ; 
-  
+    
 
 
 %%
