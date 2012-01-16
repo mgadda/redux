@@ -67,9 +67,29 @@ int main(int argc, char * const argv[])
     llvm::InitializeNativeTarget();
   }
   
-  // case, no non-opt arguments, just parse into from stdin
+  // case, no non-opt arguments, just parse, compile or run from stdin 
   if (optind == argc && !interactive) {
+    llvm::Module *module = new llvm::Module("stdin", llvm::getGlobalContext()); 
+    CodeGenContext *context = new CodeGenContext(*module);
+
+    yylineno = 1;
+    start_token = START_FILE;
+    
     yyparse();
+    
+    if(fileBlock) {
+      std::cout << "\n\nCompiling module from stdin" << std::endl;
+      context->generate(*fileBlock);
+      module->dump();
+      delete fileBlock;
+    }
+    else {
+      std::cout << "\n\nFailed to compile Module stdin " << std::endl;
+    }
+    
+    delete module;
+    delete context;
+
     return 0;
   }
   

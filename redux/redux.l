@@ -38,6 +38,9 @@
   /* Keywords */
 "return"                { return TOKEN(T_RETURN); }
 "extern"                { return T_EXTERN; }
+"if"                    { return T_IF; }
+"elsif"                 { return T_ELSIF; }
+"else"                  { return T_ELSE; }
 
   /* Literals */
 "true"                  { return T_TRUE; }
@@ -51,8 +54,8 @@
 [a-zA-Z][a-zA-Z0-9_\-]*\?? { SAVE_TOKEN; return T_IDENTIFIER;}
 
 
-[ \t]+ {}
-\n        { return TOKEN(T_NEWLINE); }
+[ \t\n]+ {}
+  /*\n        { return TOKEN(T_NEWLINE); }*/
 \(        { return TOKEN(T_LPAREN); }
 \)        { return TOKEN(T_RPAREN); }
 \{        { return TOKEN(T_LCURLY); }
