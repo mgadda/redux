@@ -165,13 +165,13 @@ namespace redux {
   class IfElse : public Expression {
   public:
     Expression &condition;
-    Block &if_block;
+    Block &then_block;
     Block *else_block;
     
-    IfElse(Expression &condition_expression, Block &if_block) 
-      : condition(condition_expression), if_block(if_block) {}    
-    IfElse(Expression &condition_expression, Block &if_block, Block *else_block) 
-      : condition(condition_expression), if_block(if_block), else_block(else_block) {}    
+    IfElse(Expression &condition_expression, Block &then_block) 
+      : condition(condition_expression), then_block(then_block) {}    
+    IfElse(Expression &condition_expression, Block &then_block, Block *else_block) 
+      : condition(condition_expression), then_block(then_block), else_block(else_block) {}    
 
     virtual const std::string node_type() { return "IfElse"; }
     virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }

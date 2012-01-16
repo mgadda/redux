@@ -286,7 +286,49 @@ Value *CodeGenContext::generate(redux::Boolean &bool_val) {
 }
 
 Value *CodeGenContext::generate(redux::IfElse &if_else) {
-  return NULL;
+  Value *cond = if_else.condition.codeGen(*this);
+  if (!cond) {
+    return NULL;
+  }
+
+  cond = builder().CreateICmpNE(cond, ConstantInt::get(getGlobalContext(), APInt(1, 1, false)));
+  
+  Function *current_function = builder().GetInsertBlock()->getParent();
+  
+
+  BasicBlock *then_bb = BasicBlock::Create(getGlobalContext(), "then", current_function);
+  BasicBlock *else_bb = BasicBlock::Create(getGlobalContext(), "else", current_function);
+  BasicBlock *merge_bb = BasicBlock::Create(getGlobalContext(), "ifcont", current_function);
+  
+  builder().CreateCondBr(cond, then_bb, else_bb);
+  
+  builder().SetInsertPoint(then_bb);
+  Value *then_value = if_else.then_block.codeGen(*this);
+  builder().CreateBr(merge_bb);
+  
+  then_bb = builder().GetInsertBlock();
+  //current_function->getBasicBlockList().push_back(else_bb);
+  builder().SetInsertPoint(else_bb);
+  
+  if (!if_else.else_block) 
+    return 0;
+  
+  Value *else_value = if_else.else_block->codeGen(*this);
+  
+  if (!else_value)
+    return 0;
+  
+  builder().CreateBr(merge_bb);
+  else_bb = builder().GetInsertBlock();
+  
+  //current_function->getBasicBlockList().push_back(merge_bb);
+  builder().SetInsertPoint(merge_bb);  
+  PHINode *phi_node = builder().CreatePHI(then_value->getType(), NULL);
+  
+  phi_node->addIncoming(then_value, then_bb);
+  phi_node->addIncoming(else_value, else_bb);
+  
+  return phi_node;
 }
 
 CodeGenContext::~CodeGenContext() {
