@@ -77,8 +77,12 @@ Value *CodeGenContext::generate(redux::Function &function) {
   
   // Return value is value of last node in function block
   if (Value *return_val = function.body->codeGen(*this)) {
-    builder().CreateRet(return_val);
-    
+
+    // Dynamically look up op code so we can cast from block's last value
+    // to return type of function at runtime.
+    Instruction::CastOps op_code = CastInst::getCastOpcode(return_val, true, fun->getReturnType(), true);
+    builder().CreateRet(builder().CreateCast(op_code, return_val, fun->getReturnType()));
+
     // Validate the generated code, checking for consistency.
     verifyFunction(*fun);
     
@@ -168,8 +172,15 @@ Value *CodeGenContext::generate(redux::FunctionCall &function_call) {
   }
 
   std::vector<Value*> callee_args;
-  for (size_t i=0, e=function_call.args.size(); i!=e; ++i) {
-    callee_args.push_back(function_call.args[i]->codeGen(*this));
+  Function::ArgumentListType::const_iterator cit = callee->getArgumentList().begin();
+  
+  for (size_t i=0, e=function_call.args.size(); i!=e; ++i, ++cit) {
+    Type *expected_arg_type = cit->getType();
+    
+    Value *arg_value = function_call.args[i]->codeGen(*this);
+    Instruction::CastOps op_code = CastInst::getCastOpcode(arg_value, true, expected_arg_type, true);
+    
+    callee_args.push_back(builder().CreateCast(op_code, arg_value, expected_arg_type));
   }
   
   return builder().CreateCall(callee, callee_args, "calltmp");
@@ -179,10 +190,27 @@ Value *CodeGenContext::generate(redux::BinaryOperator &bin_operator) {
   Value *left_value = bin_operator.lhs->codeGen(*this);
   Value *right_value = bin_operator.rhs->codeGen(*this);
   
-  // values must be of same type!
-  if (left_value->getType() != right_value->getType()) {
-    std::cerr << "operand type mismatch" << std::endl;    
-    return 0;
+  // this code assumes these values are constants, which isn't true
+  Type *lv_ty = left_value->getType();
+  Type *rv_ty = right_value->getType();
+  
+  if (CallInst *call_inst = dyn_cast<CallInst>(left_value)) {
+    lv_ty = call_inst->getCalledFunction()->getReturnType();
+  }
+
+  if (CallInst *call_inst = dyn_cast<CallInst>(right_value)) {
+    rv_ty = call_inst->getCalledFunction()->getReturnType();
+  }
+  
+
+  // values must be of same type 
+  if ((lv_ty != rv_ty && rv_ty == Type::getDoubleTy(getGlobalContext()))) {
+    Instruction::CastOps op_code = CastInst::getCastOpcode(left_value, true, rv_ty, true);
+    left_value = builder().CreateCast(op_code, left_value, rv_ty);
+  }
+  else if ((lv_ty != rv_ty && lv_ty == Type::getDoubleTy(getGlobalContext()))) {
+    Instruction::CastOps op_code = CastInst::getCastOpcode(left_value, true, rv_ty, true);
+    right_value = builder().CreateCast(op_code, right_value, lv_ty);
   }
   
   if (left_value->getType() == Type::getInt64Ty(getGlobalContext())) {
