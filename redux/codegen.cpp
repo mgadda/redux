@@ -338,10 +338,13 @@ Value *CodeGenContext::generate(redux::IfElse &if_else) {
   //current_function->getBasicBlockList().push_back(else_bb);
   builder().SetInsertPoint(else_bb);
   
-  if (!if_else.else_block) 
-    return 0;
-  
-  Value *else_value = if_else.else_block->codeGen(*this);
+  Value *else_value;
+  if (if_else.else_block) {
+    else_value = if_else.else_block->codeGen(*this);
+  }
+  else {
+    else_value = UndefValue::get(then_value->getType());
+  }
   
   if (!else_value)
     return 0;
