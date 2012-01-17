@@ -209,7 +209,7 @@ Value *CodeGenContext::generate(redux::BinaryOperator &bin_operator) {
     left_value = builder().CreateCast(op_code, left_value, rv_ty);
   }
   else if ((lv_ty != rv_ty && lv_ty == Type::getDoubleTy(getGlobalContext()))) {
-    Instruction::CastOps op_code = CastInst::getCastOpcode(left_value, true, rv_ty, true);
+    Instruction::CastOps op_code = CastInst::getCastOpcode(right_value, true, lv_ty, true);
     right_value = builder().CreateCast(op_code, right_value, lv_ty);
   }
   
