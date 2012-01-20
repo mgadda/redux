@@ -154,9 +154,11 @@ namespace redux {
   
   class ReturnKeyword : public Node {
   public:
-    Expression &returnExpression;
+    Expression *returnExpression;
     
-    ReturnKeyword(Expression &returnExpression) : returnExpression(returnExpression) {}
+    ReturnKeyword(Expression &returnExpression) : returnExpression(&returnExpression) {}
+    ReturnKeyword() : returnExpression(NULL) {}
+    
     virtual const std::string node_type() { return "Keyword"; }
     virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
 

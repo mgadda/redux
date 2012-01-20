@@ -78,10 +78,12 @@ Value *CodeGenContext::generate(redux::Function &function) {
   // Return value is value of last node in function block
   if (Value *return_val = function.body->codeGen(*this)) {
 
-    // Dynamically look up op code so we can cast from block's last value
-    // to return type of function at runtime.
-    Instruction::CastOps op_code = CastInst::getCastOpcode(return_val, true, fun->getReturnType(), true);
-    builder().CreateRet(builder().CreateCast(op_code, return_val, fun->getReturnType()));
+    if (!isa<ReturnInst>(return_val)) {
+      // Dynamically look up op code so we can cast from block's last value
+      // to return type of function at runtime.
+      Instruction::CastOps op_code = CastInst::getCastOpcode(return_val, true, fun->getReturnType(), true);
+      builder().CreateRet(builder().CreateCast(op_code, return_val, fun->getReturnType()));
+    }
 
     // Validate the generated code, checking for consistency.
     verifyFunction(*fun);
@@ -91,13 +93,18 @@ Value *CodeGenContext::generate(redux::Function &function) {
   else {
     // empty function, returns 0, 0.0 or void
     //builder().CreateRet(ConstantInt::get(getGlobalContext(), APInt(1, 0, true)));
-    builder().CreateRet(UndefValue::get(fun->getReturnType()));
+    if (fun->getReturnType() == Type::getVoidTy(getGlobalContext())) {
+      builder().CreateRetVoid();
+    }
+    else {
+      builder().CreateRet(UndefValue::get(fun->getReturnType()));
+    }    
     verifyFunction(*fun);
     pop_builder();
     
     return fun;
   }
-  
+
   pop_builder();
   
   fun->eraseFromParent();
@@ -183,7 +190,10 @@ Value *CodeGenContext::generate(redux::FunctionCall &function_call) {
     callee_args.push_back(builder().CreateCast(op_code, arg_value, expected_arg_type));
   }
   
-  return builder().CreateCall(callee, callee_args, "calltmp");
+  if (callee->getReturnType() == Type::getVoidTy(getGlobalContext()))
+    return builder().CreateCall(callee, callee_args);
+  else
+    return builder().CreateCall(callee, callee_args, "calltmp");
 }
 
 Value *CodeGenContext::generate(redux::BinaryOperator &bin_operator) {
@@ -294,8 +304,20 @@ Value *CodeGenContext::generate(redux::Identifier &identifier) {
 }
 
 Value *CodeGenContext::generate(redux::ReturnKeyword &return_keyword) {
-  // TODO: ensure returnExpression evaluates to same type as function prototype
-  return builder().CreateRet(return_keyword.returnExpression.codeGen(*this));
+  // TODO: this doesn't work if invoked inside if else graph
+  //  llvm::Function *current_function = builder().GetInsertBlock()->getParent();
+  //  
+  //  BasicBlock *return_now_bb = BasicBlock::Create(getGlobalContext(), "return_now", current_function);
+  //  builder().CreateBr(return_now_bb);
+  //  builder().SetInsertPoint(return_now_bb);
+  if (return_keyword.returnExpression) {
+    Value *value = return_keyword.returnExpression->codeGen(*this);
+    return builder().CreateRet(value);  
+  }
+  else
+    return builder().CreateRetVoid();
+  
+  
 }
 
 Value *CodeGenContext::generate(redux::Integer &integer) {

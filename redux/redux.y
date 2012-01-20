@@ -212,6 +212,7 @@ elementList: expression                 /*{ $$ = new RDXList(); $$->push_back($1
 
 
 return_statement: T_RETURN expression { $$ = new redux::ReturnKeyword(*$2); }
+  | T_RETURN                         { $$ = new redux::ReturnKeyword(); }
   ;
 
 empty: /* nothing */

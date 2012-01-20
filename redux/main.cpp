@@ -184,13 +184,20 @@ int main(int argc, char * const argv[])
         // Is there not an easier way to insert a basic block into a function post-creation?!
         tlf->getBasicBlockList().insert(tlf->getBasicBlockList().begin(), entry);
         
-        builder.CreateRet(value);
+        if (llvm::CallInst *call_inst = llvm::dyn_cast<llvm::CallInst>(value)) {
+          if (call_inst->getCalledFunction()->getReturnType() == llvm::Type::getVoidTy(llvm::getGlobalContext())) {
+            builder.CreateRetVoid();            
+          }
+          else
+            builder.CreateRet(value);
+        }
+        else
+          builder.CreateRet(value);
 
         
         //tlf->dump();
         
         llvm::verifyFunction(*tlf);
-        
         
         //std::vector<GenericValue> emptyArgs;
         llvm::GenericValue ret_value = jit_engine->runFunction(tlf, std::vector<llvm::GenericValue>());          
