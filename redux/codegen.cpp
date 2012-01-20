@@ -341,14 +341,19 @@ Value *CodeGenContext::generate(redux::IfElse &if_else) {
     return NULL;
   }
 
-  cond = builder().CreateICmpNE(cond, ConstantInt::get(getGlobalContext(), APInt(1, 1, false)));
+  // Cast whatever into 0 or 1
+//  Instruction::CastOps op_code = CastInst::getCastOpcode(cond, true, Type::getInt1Ty(getGlobalContext()), false);
+//  cond = builder().CreateCast(op_code, cond, Type::getInt1Ty(getGlobalContext()));
+  
+  // Compare against 1, doesn't the cast cover this?  
+  cond = builder().CreateICmpEQ(cond, ConstantInt::get(getGlobalContext(), APInt(1, 1, false)));
   
   Function *current_function = builder().GetInsertBlock()->getParent();
   
 
   BasicBlock *then_bb = BasicBlock::Create(getGlobalContext(), "then", current_function);
-  BasicBlock *else_bb = BasicBlock::Create(getGlobalContext(), "else", current_function);
-  BasicBlock *merge_bb = BasicBlock::Create(getGlobalContext(), "ifcont", current_function);
+  BasicBlock *else_bb = BasicBlock::Create(getGlobalContext(), "else");
+  BasicBlock *merge_bb = BasicBlock::Create(getGlobalContext(), "ifcont");
   
   builder().CreateCondBr(cond, then_bb, else_bb);
   
@@ -357,7 +362,7 @@ Value *CodeGenContext::generate(redux::IfElse &if_else) {
   builder().CreateBr(merge_bb);
   
   then_bb = builder().GetInsertBlock();
-  //current_function->getBasicBlockList().push_back(else_bb);
+  current_function->getBasicBlockList().push_back(else_bb);
   builder().SetInsertPoint(else_bb);
   
   Value *else_value;
@@ -374,7 +379,7 @@ Value *CodeGenContext::generate(redux::IfElse &if_else) {
   builder().CreateBr(merge_bb);
   else_bb = builder().GetInsertBlock();
   
-  //current_function->getBasicBlockList().push_back(merge_bb);
+  current_function->getBasicBlockList().push_back(merge_bb);
   builder().SetInsertPoint(merge_bb);  
   PHINode *phi_node = builder().CreatePHI(then_value->getType(), NULL);
   
