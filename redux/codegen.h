@@ -10,6 +10,9 @@
 #include <llvm/Module.h>
 #include <llvm/Function.h>
 #include <llvm/support/IRBuilder.h>
+#include <llvm/PassManager.h>
+
+#include "named_values.h"
 
 #ifndef redux_codegen_h
 #define redux_codegen_h
@@ -29,6 +32,7 @@ namespace redux {
   class Boolean;
   class ReturnKeyword;
   class IfElse;
+  
 }
 
 
@@ -43,10 +47,13 @@ class CodeGenContext {
   std::stack<CodeGenBlock*> blocks;
   llvm::Function *mainFunction; // needed for full compilation, but not not JIT
   llvm::Module &module;
-  std::map<std::string, llvm::Value*> namedValues;
+  redux::NamedValues named_values;
 
   std::stack<llvm::IRBuilder<> *> builder_stack;
+    
 public:
+  llvm::FunctionPassManager *function_pass_manager;
+  
   llvm::IRBuilder<> &builder();
   void pop_builder();
   void push_builder();
@@ -70,6 +77,11 @@ public:
   llvm::Value *generate(redux::IfElse &if_else);
   
   static llvm::Type *llvmTypeForString(std::string &type);
+  
+  static llvm::Value *cast_as(llvm::IRBuilder<> &builder, llvm::Value *source_value, llvm::Type* dest_type);
+  static llvm::ArrayRef<llvm::Value*> binary_cast(llvm::IRBuilder<> &builder, llvm::Value *left_value, llvm::Value *right_value);
+  
+  static llvm::AllocaInst *declareStackVar(llvm::Function *func, redux::Variable &variable);
 };
 
 

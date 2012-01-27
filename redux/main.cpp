@@ -21,6 +21,10 @@
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/raw_os_ostream.h>
+#include <llvm/PassManager.h>
+#include <llvm/Analysis/Passes.h>
+#include <llvm/Transforms/Scalar.h>
+#include <llvm/Target/TargetData.h>
 
 extern redux::Block *fileBlock;
 extern redux::Node *topLevelNode;
@@ -43,11 +47,12 @@ int main(int argc, char * const argv[])
   exit_status=0;
   bool interactive=false;
   bool compiled=false;
+  bool optimized=false;
   
   int c;
   int index;
   
-  while ((c = getopt(argc, argv, "vic")) != -1) {
+  while ((c = getopt(argc, argv, "vicz")) != -1) {
     switch (c) {
       case 'v':
         yydebug=1;
@@ -58,6 +63,8 @@ int main(int argc, char * const argv[])
       case 'c':
         compiled=true;
         break;
+      case 'z':
+        optimized=true;
       default:
         break;
     }
@@ -65,7 +72,7 @@ int main(int argc, char * const argv[])
   
   if (!compiled) {
     llvm::InitializeNativeTarget();
-  }
+  }  
   
   // case, no non-opt arguments, just parse, compile or run from stdin 
   if (optind == argc && !interactive) {
@@ -144,11 +151,34 @@ int main(int argc, char * const argv[])
   if (interactive) {
     llvm::Module *module = new llvm::Module("interactive", llvm::getGlobalContext()); 
     CodeGenContext interactive_context(*module);
-    
-    //llvm::ExecutionEngine *jit_engine = llvm::ExecutionEngine::create(module);
+    llvm::FunctionPassManager func_pass_man(module);
+          
     llvm::ExecutionEngine *jit_engine = llvm::EngineBuilder(module).create();
-    //isatty(1);
+
+    // Set up the optimizer pipeline.  Start with registering info about how the
+    // target lays out data structures.
+    func_pass_man.add(new llvm::TargetData(*jit_engine->getTargetData()));
+    // Provide basic AliasAnalysis support for GVN.
+    func_pass_man.add(llvm::createBasicAliasAnalysisPass());
+    // 
+    func_pass_man.add(llvm::createPromoteMemoryToRegisterPass());
+    // Do simple "peephole" optimizations and bit-twiddling optzns.
+    func_pass_man.add(llvm::createInstructionCombiningPass());
+    // Reassociate expressions.
+    func_pass_man.add(llvm::createReassociatePass());
+    // Eliminate Common SubExpressions.
+    func_pass_man.add(llvm::createGVNPass());
+    // Simplify the control flow graph (deleting unreachable blocks, etc).
+    func_pass_man.add(llvm::createCFGSimplificationPass());
+    // Eliminate tail calls (Bam!)
+    func_pass_man.add(llvm::createTailCallEliminationPass());
     
+    func_pass_man.doInitialization();
+
+    if (optimized)
+      interactive_context.function_pass_manager = &func_pass_man;
+    //isatty(1);
+
     while(1) {
       std::cout << "> ";
       
@@ -206,23 +236,23 @@ int main(int argc, char * const argv[])
         
         llvm::Type *returnType = tlf->getReturnType();
         if (returnType == llvm::Type::getInt1Ty(llvm::getGlobalContext())) {
-          if (ret_value.IntVal == 0) osostream << "=> false\n";          
-          else if (ret_value.IntVal == 1) osostream << "=> true\n";           
+          if (ret_value.IntVal == 0) osostream << "\n=> false\n";          
+          else if (ret_value.IntVal == 1) osostream << "\n=> true\n";           
           osostream.flush();
         }
         else if (returnType->isIntegerTy()) {
-          osostream << "=> " << ret_value.IntVal << "\n";
+          osostream << "\n=> " << ret_value.IntVal << "\n";
           osostream.flush();
         }
         else if (returnType->isDoubleTy()) {
           char strDouble[20]; 
           sprintf(strDouble, "%f", ret_value.DoubleVal);
           
-          osostream << "=> " << strDouble << "\n";          
+          osostream << "\n=> " << strDouble << "\n";          
           osostream.flush();
         }
         else if (returnType == llvm::Type::getInt64PtrTy(llvm::getGlobalContext())) {
-          osostream << "=> " << ret_value.PointerVal << "\n";
+          osostream << "\n=> " << ret_value.PointerVal << "\n";
           osostream.flush();
         }    
         

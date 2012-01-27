@@ -23,6 +23,7 @@ using namespace llvm;
 CodeGenContext::CodeGenContext(Module &module) 
   : module(module)//, builder(*new IRBuilder<>(getGlobalContext())) 
 {  
+  function_pass_manager = NULL;
 }
 
 
@@ -60,7 +61,8 @@ Value *CodeGenContext::generate(redux::Block &block) {
 }
 
 Value *CodeGenContext::generate(redux::Function &function) {
-  namedValues.clear();
+  //namedValues.clear();
+  named_values.save();
   push_builder();
   
   // function should expect to already have its prototype set
@@ -75,19 +77,41 @@ Value *CodeGenContext::generate(redux::Function &function) {
   BasicBlock *basic_block = BasicBlock::Create(getGlobalContext(), "entry", fun);
   builder().SetInsertPoint(basic_block);
   
+  // Allocate stack space for function argument variables and load them into llvm variables
+  size_t idx = 0;
+  for (llvm::Function::arg_iterator ait = fun->arg_begin(); ait != fun->arg_end(); ++ait, ++idx) {
+    // Add arg names to symbol table
+    llvm::AllocaInst *alloca = declareStackVar(fun, *proto.args[idx]);
+    builder().CreateStore(ait, alloca);
+    
+    named_values.set(proto.args[idx]->name, alloca);
+  }
+  
   // Return value is value of last node in function block
   if (Value *return_val = function.body->codeGen(*this)) {
 
     if (!isa<ReturnInst>(return_val)) {
-      // Dynamically look up op code so we can cast from block's last value
-      // to return type of function at runtime.
-      Instruction::CastOps op_code = CastInst::getCastOpcode(return_val, true, fun->getReturnType(), true);
-      builder().CreateRet(builder().CreateCast(op_code, return_val, fun->getReturnType()));
-    }
 
+      if(!isa<StoreInst>(return_val)) {
+        // Dynamically look up op code so we can cast from block's last value
+        // to return type of function at runtime.
+        Instruction::CastOps op_code = CastInst::getCastOpcode(return_val, true, fun->getReturnType(), true);
+        builder().CreateRet(builder().CreateCast(op_code, return_val, fun->getReturnType()));
+      }
+      else {
+        builder().CreateRet(return_val);
+      }
+      
+    }
+    
     // Validate the generated code, checking for consistency.
     verifyFunction(*fun);
-    
+
+    if (function_pass_manager)
+      function_pass_manager->run(*fun);
+
+    pop_builder();
+    named_values.restore();
     return fun;
   }
   else {
@@ -100,12 +124,17 @@ Value *CodeGenContext::generate(redux::Function &function) {
       builder().CreateRet(UndefValue::get(fun->getReturnType()));
     }    
     verifyFunction(*fun);
+
+    if (function_pass_manager)
+      function_pass_manager->run(*fun);
+
     pop_builder();
-    
+    named_values.restore();    
     return fun;
   }
 
   pop_builder();
+  named_values.restore();
   
   fun->eraseFromParent();
   return NULL;
@@ -156,11 +185,8 @@ Value *CodeGenContext::generate(redux::Prototype &prototype) {
   
   // Give names to function arguments
   size_t idx = 0;
-  for (llvm::Function::arg_iterator ait = function->arg_begin(); ait != function->arg_end(); ++ait, ++idx) {
+  for (llvm::Function::arg_iterator ait = function->arg_begin(); ait != function->arg_end(); ++ait, ++idx) {    
     ait->setName(prototype.args[idx]->name);
-    
-    // Add arg names to symbol table
-    namedValues[prototype.args[idx]->name] = ait;
   }
   
   return function;
@@ -286,21 +312,55 @@ Value *CodeGenContext::generate(redux::BinaryOperator &bin_operator) {
 }
 
 Value *CodeGenContext::generate(redux::Assignment &assignment) {
-  return NULL;
+  AllocaInst *alloca_inst = named_values.get(assignment.var_name);
+  
+  Value *value = assignment.value->codeGen(*this);
+  
+  if (!value || !alloca_inst) {
+    return 0;
+  }
+  
+  value = cast_as(builder(), value, alloca_inst->getAllocatedType());
+  builder().CreateStore(value, alloca_inst);
+  return value;
 }
 
+// Variable declaration (and possibly assignment)
 Value *CodeGenContext::generate(redux::Variable &variable) {
-  return NULL;
+  
+  // TODO: check if we're inside a function, if not, we're making global variables here
+  // IMPORTANT: the variable might be declared with global, function or block level scope
+  llvm::Function *current_function = builder().GetInsertBlock()->getParent();
+  AllocaInst *alloca_inst = declareStackVar(current_function, variable);
+  
+  named_values.set(variable.name, alloca_inst);
+  
+  Value *value = NULL;
+  if (variable.value) {
+    value = variable.value->codeGen(*this);    
+    if (!value) {
+      return 0;
+    }
+  }
+  else { // if no value given, set it to 0 or 0.0
+    Type *init_val_ty = llvmTypeForString(variable.type);    
+    value = UndefValue::get(init_val_ty);
+  }
+  
+  value = cast_as(builder(), value, alloca_inst->getAllocatedType());
+  builder().CreateStore(value, alloca_inst);    
+  return value;
+  
 }
 
 Value *CodeGenContext::generate(redux::Identifier &identifier) {
-  Value *value = namedValues[identifier.name];  
+  AllocaInst *alloca_inst = named_values.get(identifier.name);  
   
-  if (!value) {
+  if (!alloca_inst) {
     std::cerr << "unknown variable " << identifier.name << std::endl;
     return 0;
   }
-  return value;
+  return builder().CreateLoad(alloca_inst, identifier.name);
 }
 
 Value *CodeGenContext::generate(redux::ReturnKeyword &return_keyword) {
@@ -383,6 +443,9 @@ Value *CodeGenContext::generate(redux::IfElse &if_else) {
   builder().SetInsertPoint(merge_bb);  
   PHINode *phi_node = builder().CreatePHI(then_value->getType(), NULL);
   
+  //ArrayRef<Value*> cast_values = binary_cast(builder(), then_value, else_value);
+//  phi_node->addIncoming(cast_values[0], then_bb);
+//  phi_node->addIncoming(cast_values[1], else_bb);
   phi_node->addIncoming(then_value, then_bb);
   phi_node->addIncoming(else_value, else_bb);
   
@@ -408,4 +471,47 @@ llvm::Type *CodeGenContext::llvmTypeForString(std::string &type) {
     return Type::getVoidTy(getGlobalContext());
   }
   return NULL;
+}
+
+llvm::Value *CodeGenContext::cast_as(llvm::IRBuilder<> &builder, llvm::Value *source_value, llvm::Type* dest_type) {
+  if (source_value->getType() == dest_type) {
+    return source_value;
+  }
+  
+  llvm::Instruction::CastOps op_code = llvm::CastInst::getCastOpcode(source_value, true, dest_type, true);
+  return builder.CreateCast(op_code, source_value, dest_type);
+}
+
+ArrayRef<Value*> CodeGenContext::binary_cast(IRBuilder<> &builder, Value *left_value, Value *right_value) {
+  // this code assumes these values are constants, which isn't true
+  Type *lv_ty = left_value->getType();
+  Type *rv_ty = right_value->getType();
+  
+  lv_ty->dump();
+  rv_ty->dump();
+  
+  if (CallInst *call_inst = dyn_cast<CallInst>(left_value)) {
+    lv_ty = call_inst->getCalledFunction()->getReturnType();
+  }
+  
+  if (CallInst *call_inst = dyn_cast<CallInst>(right_value)) {
+    rv_ty = call_inst->getCalledFunction()->getReturnType();
+  }  
+  
+  if ((lv_ty != rv_ty && rv_ty == Type::getDoubleTy(getGlobalContext()))) {
+    left_value = CodeGenContext::cast_as(builder, left_value, rv_ty);
+  }
+  else if ((lv_ty != rv_ty && lv_ty == Type::getDoubleTy(getGlobalContext()))) {
+    right_value = CodeGenContext::cast_as(builder, right_value, lv_ty);
+  }
+
+  Value* values[2] = {left_value, right_value};
+  ArrayRef<Value*> cast_values(values);
+  return cast_values;
+
+}
+
+llvm::AllocaInst *CodeGenContext::declareStackVar(llvm::Function *func, redux::Variable &variable) {
+  llvm::IRBuilder<> tmp_builder(&func->getEntryBlock(), func->getEntryBlock().begin());
+  return tmp_builder.CreateAlloca(llvmTypeForString(variable.type), 0, variable.name);
 }
