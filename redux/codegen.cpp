@@ -263,15 +263,31 @@ Value *CodeGenContext::generate(redux::BinaryOperator &bin_operator) {
       case T_DIVIDE:
         return builder().CreateSDiv(left_value, right_value);
         break;
+      case T_BITOR:
+        return builder().CreateOr(left_value, right_value);
+        break;
+      case T_BITAND:
+        return builder().CreateAnd(left_value, right_value);
+        break;
       case T_CLESS_THAN:
         return builder().CreateICmpULT(left_value, right_value);
         break;
+      case T_CGREATER_THAN:
+        return builder().CreateICmpUGT(left_value, right_value);
+        break;
+      case T_CLTE:
+        return builder().CreateICmpULE(left_value, right_value);
+        break;        
+      case T_CGTE:
+        return builder().CreateICmpUGE(left_value, right_value);
+        break;        
       case T_CEQUAL:
         return builder().CreateICmpEQ(left_value, right_value);
         break;
       case T_CNOT_EQUAL:
         return builder().CreateICmpNE(left_value, right_value);
         break;
+
       default:
         break;
     }
@@ -294,6 +310,15 @@ Value *CodeGenContext::generate(redux::BinaryOperator &bin_operator) {
       case T_CLESS_THAN:
         return builder().CreateFCmpULT(left_value, right_value);
         break;
+      case T_CGREATER_THAN:
+        return builder().CreateFCmpUGT(left_value, right_value);
+        break;
+      case T_CLTE:
+        return builder().CreateFCmpULE(left_value, right_value);
+        break;        
+      case T_CGTE:
+        return builder().CreateFCmpUGE(left_value, right_value);
+        break;                
       case T_CEQUAL:
         return builder().CreateFCmpUEQ(left_value, right_value);
         break;

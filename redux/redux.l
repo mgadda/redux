@@ -74,6 +74,11 @@
 "*"       { return TOKEN(T_MULTIPLY); }
 "/"       { return TOKEN(T_DIVIDE); }
 "<"       { return TOKEN(T_CLESS_THAN); }
+">"       { return TOKEN(T_CGREATER_THAN); }
+"<="       { return TOKEN(T_CLTE); }
+">="       { return TOKEN(T_CGTE); }
+"|"       { return TOKEN(T_BITOR); }
+"&"       { return TOKEN(T_BITAND); }
 
 
 

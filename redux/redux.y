@@ -65,7 +65,9 @@
 %token <token> T_SEMICOLON T_EQUAL T_DOT T_COLON T_NEWLINE
 %token <token> T_PLUS T_MINUS T_MULTIPLY T_DIVIDE
 %token <token> T_RETURN T_EXTERN T_IF T_ELSIF T_ELSE
-%token <token> T_CEQUAL T_CNOT_EQUAL T_CLESS_THAN
+%token <token> T_BITOR T_BITAND
+%token <token> T_CEQUAL T_CNOT_EQUAL T_CLESS_THAN T_CGREATER_THAN T_CLTE T_CGTE
+
 
 %left T_PLUS T_MINUS
 %right T_CEQUAL T_CNOT_EQUAL
@@ -203,7 +205,9 @@ keyValue: ident T_COLON expression
   ;
 
 binary_operator: T_PLUS | T_MINUS | T_MULTIPLY 
-  | T_DIVIDE | T_CEQUAL | T_CNOT_EQUAL | T_CLESS_THAN
+  | T_DIVIDE | T_CEQUAL | T_CNOT_EQUAL | T_CLESS_THAN | T_CGREATER_THAN
+  | T_CLTE | T_CGTE
+  | T_BITOR | T_BITAND
   ;
 
 elementList: expression                 /*{ $$ = new RDXList(); $$->push_back($1); }*/
