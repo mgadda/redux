@@ -46,10 +46,10 @@
 "true"                  { return T_TRUE; }
 "false"                 { return T_FALSE; }
 [-+]?[0-9]+\.[0-9]*     { SAVE_TOKEN; return T_FLOAT;}           
-[-+]?[0-9]+             { SAVE_TOKEN; return T_INTEGER;}
+[-+]?[1-9][0-9]+             { SAVE_TOKEN; return T_INTEGER;}
 "0x"[-+]?[0-9a-f]+      { SAVE_TOKEN; return T_HEX_INTEGER;}     
 "0b"[-+]?[0-9]+         { SAVE_TOKEN; return T_BIN_INTEGER;}     
-"0o"[-+]?[0-7]+         { SAVE_TOKEN; return T_OCT_INTEGER;}     
+"0"[-+]?[0-7]+         { SAVE_TOKEN; return T_OCT_INTEGER;}     
 \"[^\"]*\"              { SAVE_TOKEN; return T_STRING;}
 [a-zA-Z][a-zA-Z0-9_\-]*\?? { SAVE_TOKEN; return T_IDENTIFIER;}
 

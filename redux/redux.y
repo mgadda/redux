@@ -1,6 +1,8 @@
 
 %{
   #include <stdlib.h>
+  #include <sstream>
+  
   #include "ast.h"
   redux::Block *fileBlock;
   redux::Node *topLevelNode;
@@ -178,6 +180,26 @@ ident: T_IDENTIFIER                   { $$ = new redux::Identifier(*$1); }
  
 numeric: T_INTEGER                    { $$ = new redux::Integer(atol($1->c_str())); delete $1; } /*{ $$ = new RDXInteger(atol($1->c_str())); delete $1; }*/
   | T_FLOAT                           { $$ = new redux::Float(atof($1->c_str())); delete $1; }
+  | T_HEX_INTEGER                     { 
+      long i=0;
+      std::istringstream ss;
+      ss.str(*$1);
+      ss >> std::hex >> i;
+      $$ = new redux::Integer(i); delete $1; 
+    }
+  | T_BIN_INTEGER                     {
+      char *end;
+      $$ = new redux::Integer(strtol($1->c_str()+2, &end, 2)); 
+      delete $1; 
+    }
+  | T_OCT_INTEGER                     { 
+      long i=0;
+      std::istringstream ss;
+      ss.str(*$1);
+      ss >> std::oct >> i;
+      $$ = new redux::Integer(i); 
+      delete $1; 
+    }
   ;
 
 bool: T_TRUE                          { $$ = new redux::Boolean(true); }
