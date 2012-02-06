@@ -7,8 +7,11 @@
 //
 
 #include <iostream>
+#include <map>
+
 #include "codegen.h"
 #include "ast.h"
+#include "class.h"
 #include "parser.hpp"
 
 #include <llvm/Module.h>
@@ -17,6 +20,7 @@
 #include <llvm/LLVMContext.h>
 #include <llvm/Constants.h>
 #include <llvm/Analysis/Verifier.h>
+#include <llvm/Instructions.h>
 
 using namespace llvm;
 
@@ -149,11 +153,11 @@ Value *CodeGenContext::generate(redux::Prototype &prototype) {
   for(it = prototype.args.begin(); it != prototype.args.end(); it++) {
     std::string type = (**it).type;
     
-    arg_types.push_back(llvmTypeForString(type));
+    arg_types.push_back(llvmTypeForString(type, module));
   }
 
   // Specify return type
-  Type *return_type = llvmTypeForString(prototype.return_type);
+  Type *return_type = llvmTypeForString(prototype.return_type, module);
   
   // Create function (w/o definition)
   FunctionType *function_type = FunctionType::get(return_type, arg_types, false);
@@ -193,6 +197,10 @@ Value *CodeGenContext::generate(redux::Prototype &prototype) {
 }
 
 Value *CodeGenContext::generate(redux::FunctionCall &function_call) {
+  // if "this" is in named_values, find its type and check if there's
+  // a function with type#fun signature, otherwise, just call function
+  //named_values.get("this");
+  
   llvm::Function *callee = module.getFunction(function_call.callee);
   if (callee == NULL) {
     fprintf(stderr, "undefined function %s\n", function_call.callee.c_str());
@@ -356,6 +364,10 @@ Value *CodeGenContext::generate(redux::Variable &variable) {
   // TODO: check if we're inside a function, if not, we're making global variables here
   // IMPORTANT: the variable might be declared with global, function or block level scope
   llvm::Function *current_function = builder().GetInsertBlock()->getParent();
+  if (!current_function) {
+    // TODO: Or, make it a global variable?
+    return 0;
+  }
   AllocaInst *alloca_inst = declareStackVar(current_function, variable);
   
   named_values.set(variable.name, alloca_inst);
@@ -368,7 +380,7 @@ Value *CodeGenContext::generate(redux::Variable &variable) {
     }
   }
   else { // if no value given, set it to 0 or 0.0
-    Type *init_val_ty = llvmTypeForString(variable.type);    
+    Type *init_val_ty = llvmTypeForString(variable.type, module);    
     value = UndefValue::get(init_val_ty);
   }
   
@@ -477,12 +489,286 @@ Value *CodeGenContext::generate(redux::IfElse &if_else) {
   return phi_node;
 }
 
+llvm::Value *CodeGenContext::generate(redux::Class &klass) {
+  // IMPORTANT: must process fields first (to create type) before functions can
+  // be generated, since they'll reference the instance variables
+  
+  // declare struct type with klass name
+  // it should have fields that correspond to klass's variables
+  
+  //std::string class_type_name = std::string("class.") + klass.name;
+  std::string class_type_name = klass.name;
+  
+  StructType *class_struct_type = module.getTypeByName(class_type_name);
+  
+  // TODO: determine way to look up variables in function bodies, need to keep
+  // track of order in which they're stored in the struct type
+  std::vector<Type*> fields;
+  std::map<std::string, redux::Variable*>::iterator vit;
+  int idx;
+  for (idx=0, vit = klass.variables.begin(); vit != klass.variables.end(); ++vit, idx++) {
+    std::string name = (*vit).first;
+    redux::Variable &var = *(*vit).second;
+    Type *ty = llvmTypeForString(var.type, module);
+    fields.push_back(ty);
+    class_member_indices[class_type_name][var.name] = idx;
+  }
+  
+  if (!class_struct_type) {
+    class_struct_type = StructType::create(module.getContext(), fields, class_type_name);    
+  }
+  else {
+    class_struct_type->setBody(fields);
+  }
+
+  generate_new_method_for_type(*class_struct_type);
+  //module.NumeredTypesMapTy;
+  
+  //CallInst::CreateMalloc(llvm::BasicBlock *InsertAtEnd, llvm::Type *IntPtrTy, llvm::Type *AllocTy, llvm::Value *AllocSize);
+  
+  //llvm::TargetData::getTypeAllocSize(class_struct_type);
+ 
+  // klass.name, what we prefix methods with ClassName_method_name
+  // iterate over each function and generate codegen for each, but use
+  // the modified method name
+  // arguments: pointer to ClassName, rest of args if any
+
+  // method definitions should have instance and static variables at their disposal
+  // that is, in named_values when they're being generated.
+  
+  // Modify each method's prototype to accept a pointer to an object of class_struct_type
+  /*
+   class Foo {
+     int compute(int x) {}
+   }
+   becomes:
+   class.Foo#compute
+   compute(int x) -> Foo.compute(Foo this, int x)
+   */
+  
+  // Generate instance methods
+  std::map<std::string, redux::Function*>::iterator it;
+  
+  for (it = klass.methods.begin(); it != klass.methods.end(); ++it) {
+    redux::Function *method = (*it).second;
+    method->prototype->name = class_type_name + "#" + method->prototype->name;
+    method->prototype->args.insert(method->prototype->args.begin(), new redux::Variable(class_type_name, "this"));
+    method->codeGen(*this);
+  }
+
+  // Generate class methods
+  for (it = klass.class_methods.begin(); it != klass.class_methods.end(); ++it) {
+    redux::Function *method = (*it).second;
+    method->prototype->name = class_type_name + "#" + method->prototype->name;
+    method->codeGen(*this);
+  }
+
+  return 0;
+}
+
+llvm::Function *CodeGenContext::generate_new_method_for_type(StructType &type) {
+  // create method called "class_name#foo"
+  // someday it should invoke initialize() instance method on newly minted instance
+  push_builder();
+  
+  redux::Prototype proto(type.getName(), type.getName().str() + "#new", redux::VariableList());
+  llvm::Function *new_function = (llvm::Function*)proto.codeGen(*this);
+  
+  if (!new_function) {
+    return NULL;
+  }
+  
+  BasicBlock *basic_block = BasicBlock::Create(getGlobalContext(), "entry", new_function);
+  builder().SetInsertPoint(basic_block);
+  
+  // Obtain size of type (this is portable hack brought to you by: http://nondot.org/sabre/LLVMNotes/SizeOf-OffsetOf-VariableSizedStructs.txt)  
+  Value* gepIdx[1] = {ConstantInt::get(Type::getInt32Ty(getGlobalContext()), 1)};
+  Value *size;// = builder().CreateGEP(Constant::getNullValue(type.getPointerTo()), gepIdx); 
+  size = GetElementPtrInst::Create(Constant::getNullValue(type.getPointerTo()), gepIdx, "sizeof", basic_block);
+  
+  //Value *sizeI = builder().CreateIntCast(size, Type::getInt32Ty(getGlobalContext()), false);
+  //CastInst::CreateIntegerCast(size, <#llvm::Type *Ty#>, <#bool isSigned#>)
+  
+  Value *sizeI = builder().CreatePointerCast(size, Type::getInt32Ty(getGlobalContext()));
+  
+//  sizeI->dump();
+//  sizeI->getType()->dump();
+  
+  Instruction *malloc_inst = CallInst::CreateMalloc(basic_block, Type::getInt32Ty(getGlobalContext()), type.getPointerTo(), sizeI);
+  builder().Insert(malloc_inst);
+  //ReturnInst::Create(getGlobalContext(), malloc_inst, basic_block);
+  //llvm::AllocInst *alloca = builder().CreateAlloca(type.getPointerTo());  
+  
+  //gepIdx[0] = ConstantInt::get(Type::getInt32Ty(getGlobalContext()), 0);
+  Value *bit_cast = builder().CreateBitCast(builder().CreateGEP(malloc_inst, gepIdx), type.getPointerTo());
+  
+  builder().CreateRet(bit_cast);
+
+  verifyFunction(*new_function);
+  
+  pop_builder();
+
+  
+  return new_function;
+}
+
+llvm::Value *CodeGenContext::generate(redux::Constructor &constructor) {
+  return NULL;
+}
+
+
+llvm::Value *CodeGenContext::generate(redux::MemberAccess &member_access) {
+  
+  /*
+   if expression is present, determine type of expression, must be struct type
+   1. look up offset of member identifier's name into structs of this type (use global mapping)
+   2. use getelementptr to access the value stored at the appropriate offset
+   3. return value
+   */
+  if (member_access.expression) {
+      
+    llvm::Value *obj_expr_value = member_access.expression->codeGen(*this);
+    Type *obj_expr_type = obj_expr_value->getType();
+    if (obj_expr_type->isStructTy()) {
+      StructType *struct_ty = dyn_cast<StructType>(obj_expr_type);
+      
+      int offset_idx = class_member_indices[struct_ty->getName()][member_access.member_identifier.name];      
+      Value *offset_idx_value = ConstantInt::get(getGlobalContext(), APInt(8, offset_idx, true));
+          
+      Value *offset_values[2] = {ConstantInt::get(getGlobalContext(), APInt(1, 0, true)), offset_idx_value};
+      return builder().CreateGEP(obj_expr_value, offset_values);
+    }
+  }
+  /*
+   if expression is not present, it means the member access occurred in the form of @var_name.
+   1. determine struct type based on current class being constructed (where is this stored?)
+      it could be stored in named_values as the this alloca pointer
+   2. look up offset of member identifier's name into structs of this type (use global mapping)
+   3. use getelementptr to access the value stored at the appropriate offset
+   4. return value
+   */
+  if (!member_access.expression) {
+    AllocaInst *this_alloc_inst = named_values.get("this"); 
+    LoadInst *this_load_inst = builder().CreateLoad(this_alloc_inst, "this");
+
+    StructType *struct_ty = dyn_cast<StructType>(this_alloc_inst->getAllocatedType());
+    
+    int offset_idx = class_member_indices[struct_ty->getName().str()][member_access.member_identifier.name];      
+    Value *offset_idx_value = ConstantInt::get(getGlobalContext(), APInt(8, offset_idx, true));
+    
+    Value *offset_values[2] = {ConstantInt::get(getGlobalContext(), APInt(1, 0, true)), offset_idx_value};
+    return builder().CreateGEP(this_load_inst, offset_values);
+  
+  } 
+  return NULL;
+}
+
+llvm::Value *CodeGenContext::generate(redux::MethodCall &method_call) {
+  bool is_class_method = false;
+  StructType *class_type = NULL;
+  // How do we know if Foo is a variabe or a class? 
+  // check class_member_indices top level keys for something with the same name
+  // class names always take precendence over variable names
+  // this could be enforced syntactically by requiring variables have lower case names
+  // and types have TitleCase names
+  if (method_call.expression->node_type() == "Identifier") {
+    redux::Identifier *ident = (redux::Identifier*)(method_call.expression);
+    class_type = module.getTypeByName(ident->name);
+    if (class_type) {
+      // then this identifier refers to a class, not an instance of a class
+      
+      // if method name is "new," we have to construct a new object on the heap
+      // and invoke its initialize method.
+      // ney, do not construct it here, do that in class definition.
+      // merely call method here. This should collapse into the case below.
+      
+      // if method name is anything else, invoke it like below, but just suppress
+      // the passing of a this pointer, because this is a static method
+      is_class_method = true;
+    }
+  }
+  
+
+  // Attempt to convert an expression into something with a type, that
+  // type must be a known class so that we can reconstruct what the actual
+  // function name is that should be invoked with the first argument being the
+  // expression value itself.
+  
+  Value *object_expr_value = NULL;
+  Value *derefed_obj_value = NULL;
+  Type *obj_expr_type = NULL;
+  if (!is_class_method) {
+    object_expr_value = method_call.expression->codeGen(*this);
+    
+    derefed_obj_value = builder().CreateLoad(object_expr_value);
+    obj_expr_type = derefed_obj_value->getType();
+    
+  }
+  else
+    obj_expr_type = class_type;
+  
+  obj_expr_type->dump();
+  
+  if (obj_expr_type->isStructTy()) {
+    StructType *struct_ty = dyn_cast<StructType>(obj_expr_type);
+  //builder().CreateBitCast(obj_expr_type, object_expr_value->get)
+    
+    std::string method_name = struct_ty->getName().str() + "#" + method_call.method_identifier.name;
+    
+    llvm::Function *callee = module.getFunction(method_name);
+    if (callee == NULL) {
+      fprintf(stderr, "undefined method %s\n", method_name.c_str());
+      return 0;
+    }
+    
+    size_t expected_args = method_call.args.size();
+    if (!is_class_method) {
+      // Add 1 here for the new "this" argument
+      expected_args = method_call.args.size() + 1;
+    }
+    
+    if (callee->arg_size() != expected_args) {
+      fprintf(stderr, "wrong number of arguments passed to %s\n", method_name.c_str());
+      return 0;
+    }
+    
+    std::vector<Value*> callee_args;
+    
+    if (!is_class_method) {
+      callee_args.push_back(object_expr_value);
+    }
+    
+    // Cast arguments to expected types
+    Function::ArgumentListType::const_iterator cit = callee->getArgumentList().begin();
+    for (size_t i=0, e=method_call.args.size(); i!=e; ++i, ++cit) {
+      Type *expected_arg_type = cit->getType();
+      
+      Value *arg_value = method_call.args[i]->codeGen(*this);
+      Instruction::CastOps op_code = CastInst::getCastOpcode(arg_value, true, expected_arg_type, true);
+      
+      callee_args.push_back(builder().CreateCast(op_code, arg_value, expected_arg_type));
+    }
+    
+    // void functions can't have names, apparently (better solution: get rid of void entirely)
+    if (callee->getReturnType() == Type::getVoidTy(getGlobalContext()))
+      return builder().CreateCall(callee, callee_args);
+    else
+      return builder().CreateCall(callee, callee_args, "calltmp");
+    
+  }
+  return NULL;
+}
+
+llvm::Value *CodeGenContext::generate(redux::MemberAssignment &member_assignment) {
+  
+}
+
 CodeGenContext::~CodeGenContext() {
   if (mainFunction) delete mainFunction;
 }
 
 
-llvm::Type *CodeGenContext::llvmTypeForString(std::string &type) {
+llvm::Type *CodeGenContext::llvmTypeForString(std::string &type, llvm::Module &module) {
   if (type == "int") {
     return Type::getInt64Ty(getGlobalContext());
   }
@@ -495,6 +781,10 @@ llvm::Type *CodeGenContext::llvmTypeForString(std::string &type) {
   else if (type == "void") {
     return Type::getVoidTy(getGlobalContext());
   }
+  else {
+    return PointerType::get(module.getTypeByName(type), 0);
+  }
+    
   return NULL;
 }
 
@@ -538,5 +828,5 @@ ArrayRef<Value*> CodeGenContext::binary_cast(IRBuilder<> &builder, Value *left_v
 
 llvm::AllocaInst *CodeGenContext::declareStackVar(llvm::Function *func, redux::Variable &variable) {
   llvm::IRBuilder<> tmp_builder(&func->getEntryBlock(), func->getEntryBlock().begin());
-  return tmp_builder.CreateAlloca(llvmTypeForString(variable.type), 0, variable.name);
+  return tmp_builder.CreateAlloca(llvmTypeForString(variable.type, *(func->getParent())), 0, variable.name);
 }

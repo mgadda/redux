@@ -1,13 +1,14 @@
 
-#ifndef __ast_h__
-#define __ast_h__
-
 #include <iostream>
 #include <vector>
 #include <map>
 
 #include <llvm/Value.h>
 #include "codegen.h"
+
+#ifndef __ast_h__
+#define __ast_h__
+
 
 namespace redux {
 
@@ -64,6 +65,11 @@ namespace redux {
     Function(Prototype *prototype, Block *body) : prototype(prototype), body(body) {}
 
     virtual const std::string node_type() { return "Function"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
+  };
+  
+  class Constructor : public Function {
+    virtual const std::string node_type() { return "Constructor"; }    
     virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
   };
   
@@ -178,6 +184,39 @@ namespace redux {
     virtual const std::string node_type() { return "IfElse"; }
     virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
   
+  };
+  
+  class MemberAccess : public Expression {    
+  public:
+    Expression *expression;
+    Identifier &member_identifier;
+    
+    MemberAccess(Expression &object_expression, Identifier &member_identifier) : expression(&object_expression), member_identifier(member_identifier) {}
+    MemberAccess(Identifier &member_identifier) : expression(NULL), member_identifier(member_identifier) {}
+    
+    virtual const std::string node_type() { return "MemberAccess"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
+  };
+  
+  class MemberAssignment : public Expression {
+  public:
+    MemberAssignment(Identifier &member_identifier, Expression &expression) {}
+    virtual const std::string node_type() { return "MemberAssignment"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
+    
+  };
+  
+  class MethodCall : public Expression {
+  public:
+    Expression *expression;
+    Identifier &method_identifier;
+    ExpressionList args;
+    
+    MethodCall(Expression &object_expression, Identifier &method_identifier, ExpressionList &args) 
+      : expression(&object_expression), method_identifier(method_identifier), args(args) {}
+    
+    virtual const std::string node_type() { return "MethodCall"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
   };
 }
 

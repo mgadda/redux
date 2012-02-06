@@ -41,6 +41,8 @@
 "if"                    { return T_IF; }
 "elsif"                 { return T_ELSIF; }
 "else"                  { return T_ELSE; }
+"static"                { return T_STATIC; }
+"class"                 { return T_CLASS; }
 
   /* Literals */
 "true"                  { return T_TRUE; }
@@ -52,7 +54,6 @@
 "0"[-+]?[0-7]+          { SAVE_TOKEN; return T_OCT_INTEGER;}     
 \"[^\"]*\"              { SAVE_TOKEN; return T_STRING;}
 [a-zA-Z][a-zA-Z0-9_\-]*\?? { SAVE_TOKEN; return T_IDENTIFIER;}
-
 
 [ \t\n]+ {}
   /*\n        { return TOKEN(T_NEWLINE); }*/
@@ -79,7 +80,7 @@
 ">="       { return TOKEN(T_CGTE); }
 "|"       { return TOKEN(T_BITOR); }
 "&"       { return TOKEN(T_BITAND); }
-
+"@"       { return TOKEN(T_AT); }
 
 
 .                       { printf("mystery character: %x\n", yytext[0]); }

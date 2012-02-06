@@ -12,6 +12,7 @@
 		7D2DF6E814992DDD00DD3D46 /* redux.y in Sources */ = {isa = PBXBuildFile; fileRef = 7D2DF6E714992DDD00DD3D46 /* redux.y */; };
 		7D37FE6F14B5817C00265E91 /* codegen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D37FE6E14B5817C00265E91 /* codegen.cpp */; };
 		7D37FE7114B588A400265E91 /* ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D37FE7014B588A400265E91 /* ast.cpp */; };
+		7D7681A614D495AE0094A5A5 /* class.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D7681A514D495AE0094A5A5 /* class.cpp */; };
 		7D83A12414A290D900048145 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 7D83A12314A290D900048145 /* Makefile */; };
 		7DC06C6214CCF5DF00BA2AE8 /* named_values.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DC06C6114CCF5DF00BA2AE8 /* named_values.cpp */; };
 		7DC7BA00149BC3F700C76881 /* redux.l in Sources */ = {isa = PBXBuildFile; fileRef = 7DC7B9FF149BC3F700C76881 /* redux.l */; };
@@ -64,9 +65,10 @@
 		7D37FE6D14B43FA400265E91 /* codegen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = codegen.h; sourceTree = "<group>"; };
 		7D37FE6E14B5817C00265E91 /* codegen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = codegen.cpp; sourceTree = "<group>"; };
 		7D37FE7014B588A400265E91 /* ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ast.cpp; sourceTree = "<group>"; };
+		7D7681A514D495AE0094A5A5 /* class.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = class.cpp; sourceTree = "<group>"; };
 		7D83A12314A290D900048145 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		7D83A12914A5A52F00048145 /* ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ast.h; sourceTree = "<group>"; };
-		7D83A13914B2490D00048145 /* class.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = class.h; path = redux/class.h; sourceTree = "<group>"; };
+		7D83A13914B2490D00048145 /* class.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = class.h; sourceTree = "<group>"; };
 		7DC06C5F14CCF2D700BA2AE8 /* named_values.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = named_values.h; sourceTree = "<group>"; };
 		7DC06C6114CCF5DF00BA2AE8 /* named_values.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = named_values.cpp; sourceTree = "<group>"; };
 		7DC7B9FF149BC3F700C76881 /* redux.l */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.lex; path = redux.l; sourceTree = "<group>"; };
@@ -86,7 +88,6 @@
 		7D2DF6CF14992D3800DD3D46 = {
 			isa = PBXGroup;
 			children = (
-				7D83A13914B2490D00048145 /* class.h */,
 				7D2DF6DD14992D3800DD3D46 /* redux */,
 				7D2DF6DB14992D3800DD3D46 /* Products */,
 			);
@@ -103,6 +104,7 @@
 		7D2DF6DD14992D3800DD3D46 /* redux */ = {
 			isa = PBXGroup;
 			children = (
+				7D83A13914B2490D00048145 /* class.h */,
 				7D83A12914A5A52F00048145 /* ast.h */,
 				7DC7BA01149BC42200C76881 /* documentation */,
 				7DC7B9FF149BC3F700C76881 /* redux.l */,
@@ -114,6 +116,7 @@
 				7D37FE7014B588A400265E91 /* ast.cpp */,
 				7DC06C5F14CCF2D700BA2AE8 /* named_values.h */,
 				7DC06C6114CCF5DF00BA2AE8 /* named_values.cpp */,
+				7D7681A514D495AE0094A5A5 /* class.cpp */,
 			);
 			path = redux;
 			sourceTree = "<group>";
@@ -185,6 +188,7 @@
 				7D37FE6F14B5817C00265E91 /* codegen.cpp in Sources */,
 				7D37FE7114B588A400265E91 /* ast.cpp in Sources */,
 				7DC06C6214CCF5DF00BA2AE8 /* named_values.cpp in Sources */,
+				7D7681A614D495AE0094A5A5 /* class.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
