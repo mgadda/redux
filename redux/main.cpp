@@ -20,11 +20,13 @@
 #include <llvm/support/IRBuilder.h>
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Support/TargetSelect.h>
-#include <llvm/Support/raw_os_ostream.h>
+#include <llvm/Support/FormattedStream.h>
+#include <llvm/Pass.h>
 #include <llvm/PassManager.h>
 #include <llvm/Analysis/Passes.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Target/TargetData.h>
+#include <llvm/Assembly/PrintModulePass.h>
 
 extern redux::Block *fileBlock;
 extern redux::Node *topLevelNode;
@@ -42,7 +44,6 @@ void *do_work(void *thread_id);
 
 int main(int argc, char * const argv[])
 { 
-  llvm::raw_os_ostream osostream(std::cout);
   yydebug=0;
   exit_status=0;
   bool interactive=false;
@@ -78,20 +79,26 @@ int main(int argc, char * const argv[])
   if (optind == argc && !interactive) {
     llvm::Module *module = new llvm::Module("stdin", llvm::getGlobalContext()); 
     CodeGenContext *context = new CodeGenContext(*module);
+    llvm::PassManager module_pass_manager;
 
+    module_pass_manager.add(llvm::createPrintModulePass(&llvm::fouts()));
+    
     yylineno = 1;
     start_token = START_FILE;
     
     yyparse();
     
     if(fileBlock) {
-      std::cout << "\n\nCompiling module from stdin" << std::endl;
+      llvm::fdbgs() << "\n\nCompiling module from stdin\n";
       context->generate(*fileBlock);
-      module->dump();
+      llvm::verifyModule(*module);
+      
+      module_pass_manager.run(*module);
+      
       delete fileBlock;
     }
     else {
-      std::cout << "\n\nFailed to compile Module stdin " << std::endl;
+      llvm::ferrs() << "\n\nFailed to compile Module stdin\n";
     }
     
     delete module;
@@ -113,10 +120,15 @@ int main(int argc, char * const argv[])
 //    printf("ERROR: pthread_create() returned %d\n", ret);
 //  }
   
+  // TODO: create main function into which all non-function and class definitions
+  // can be inserted, this will make it possible to just "run" a file without specifying main()
   for (index = optind; index < argc; index++) {
     llvm::Module *module = new llvm::Module(argv[index], llvm::getGlobalContext()); 
     CodeGenContext *context = new CodeGenContext(*module);
+    llvm::PassManager module_pass_manager;
     
+    module_pass_manager.add(llvm::createPrintModulePass(&llvm::fouts()));
+
     FILE *f = fopen(argv[index], "r");
     
     if(!f) {
@@ -134,13 +146,14 @@ int main(int argc, char * const argv[])
     yyparse();
     
     if(fileBlock) {
-      std::cout << "\n\nCompiling module " << argv[index] << std::endl;
+      //llvm::fdbgs() << "\n\nCompiling module " << argv[index] << "\n";
       context->generate(*fileBlock);
-      module->dump();
+      llvm::verifyModule(*module);
+      module_pass_manager.run(*module);
       delete fileBlock;
     }
     else {
-      std::cout << "\n\nFailed to compile Module " << argv[index] << std::endl;
+      llvm::ferrs() << "\n\nFailed to compile Module " << argv[index] << "\n";
     }
     
     delete module;
@@ -201,7 +214,7 @@ int main(int argc, char * const argv[])
           builder.CreateRet(llvm::UndefValue::get(llvm::Type::getVoidTy(llvm::getGlobalContext())));
           continue;
         }
-          
+         
         value->dump();
         
         
@@ -236,24 +249,24 @@ int main(int argc, char * const argv[])
         
         llvm::Type *returnType = tlf->getReturnType();
         if (returnType == llvm::Type::getInt1Ty(llvm::getGlobalContext())) {
-          if (ret_value.IntVal == 0) osostream << "\n=> false\n";          
-          else if (ret_value.IntVal == 1) osostream << "\n=> true\n";           
-          osostream.flush();
+          if (ret_value.IntVal == 0) llvm::fouts() << "\n=> false\n";          
+          else if (ret_value.IntVal == 1) llvm::fouts() << "\n=> true\n";           
+          llvm::fouts().flush();
         }
         else if (returnType->isIntegerTy()) {
-          osostream << "\n=> " << ret_value.IntVal << "\n";
-          osostream.flush();
+          llvm::fouts() << "\n=> " << ret_value.IntVal << "\n";
+          llvm::fouts().flush();
         }
         else if (returnType->isDoubleTy()) {
           char strDouble[20]; 
           sprintf(strDouble, "%f", ret_value.DoubleVal);
           
-          osostream << "\n=> " << strDouble << "\n";          
-          osostream.flush();
+          llvm::fouts() << "\n=> " << strDouble << "\n";          
+          llvm::fouts().flush();
         }
         else if (returnType == llvm::Type::getInt64PtrTy(llvm::getGlobalContext())) {
-          osostream << "\n=> " << ret_value.PointerVal << "\n";
-          osostream.flush();
+          llvm::fouts() << "\n=> " << ret_value.PointerVal << "\n";
+          llvm::fouts().flush();
         }    
         
 
