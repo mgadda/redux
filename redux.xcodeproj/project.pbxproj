@@ -16,6 +16,8 @@
 		7D83A12414A290D900048145 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 7D83A12314A290D900048145 /* Makefile */; };
 		7DC06C6214CCF5DF00BA2AE8 /* named_values.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DC06C6114CCF5DF00BA2AE8 /* named_values.cpp */; };
 		7DC7BA00149BC3F700C76881 /* redux.l in Sources */ = {isa = PBXBuildFile; fileRef = 7DC7B9FF149BC3F700C76881 /* redux.l */; };
+		7DDDA84214E6DD6600F01707 /* runtime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DDDA84114E6DD6600F01707 /* runtime.cpp */; };
+		7DDDA84414E6DD7400F01707 /* runtime.h in Headers */ = {isa = PBXBuildFile; fileRef = 7DDDA84314E6DD7400F01707 /* runtime.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -48,7 +50,7 @@
 		7D2DF6D814992D3800DD3D46 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
+			dstPath = usr/share/man/man1;
 			dstSubfolderSpec = 0;
 			files = (
 				7D2DF6E114992D3800DD3D46 /* redux.1 in CopyFiles */,
@@ -72,10 +74,20 @@
 		7DC06C5F14CCF2D700BA2AE8 /* named_values.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = named_values.h; sourceTree = "<group>"; };
 		7DC06C6114CCF5DF00BA2AE8 /* named_values.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = named_values.cpp; sourceTree = "<group>"; };
 		7DC7B9FF149BC3F700C76881 /* redux.l */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.lex; path = redux.l; sourceTree = "<group>"; };
+		7DDDA83D14E6DCE800F01707 /* libredux.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libredux.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		7DDDA84114E6DD6600F01707 /* runtime.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = runtime.cpp; sourceTree = "<group>"; };
+		7DDDA84314E6DD7400F01707 /* runtime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = runtime.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		7D2DF6D714992D3800DD3D46 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7DDDA83A14E6DCE800F01707 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -97,6 +109,7 @@
 			isa = PBXGroup;
 			children = (
 				7D2DF6DA14992D3800DD3D46 /* redux */,
+				7DDDA83D14E6DCE800F01707 /* libredux.dylib */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -117,6 +130,8 @@
 				7DC06C5F14CCF2D700BA2AE8 /* named_values.h */,
 				7DC06C6114CCF5DF00BA2AE8 /* named_values.cpp */,
 				7D7681A514D495AE0094A5A5 /* class.cpp */,
+				7DDDA84114E6DD6600F01707 /* runtime.cpp */,
+				7DDDA84314E6DD7400F01707 /* runtime.h */,
 			);
 			path = redux;
 			sourceTree = "<group>";
@@ -130,6 +145,17 @@
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		7DDDA83B14E6DCE800F01707 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7DDDA84414E6DD7400F01707 /* runtime.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
 		7D2DF6D914992D3800DD3D46 /* redux */ = {
@@ -150,6 +176,23 @@
 			productName = redux;
 			productReference = 7D2DF6DA14992D3800DD3D46 /* redux */;
 			productType = "com.apple.product-type.tool";
+		};
+		7DDDA83C14E6DCE800F01707 /* runtime */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7DDDA83E14E6DCE800F01707 /* Build configuration list for PBXNativeTarget "runtime" */;
+			buildPhases = (
+				7DDDA83914E6DCE800F01707 /* Sources */,
+				7DDDA83A14E6DCE800F01707 /* Frameworks */,
+				7DDDA83B14E6DCE800F01707 /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = runtime;
+			productName = libredux;
+			productReference = 7DDDA83D14E6DCE800F01707 /* libredux.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
 		};
 /* End PBXNativeTarget section */
 
@@ -172,6 +215,7 @@
 			projectRoot = "";
 			targets = (
 				7D2DF6D914992D3800DD3D46 /* redux */,
+				7DDDA83C14E6DCE800F01707 /* runtime */,
 			);
 		};
 /* End PBXProject section */
@@ -192,6 +236,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		7DDDA83914E6DCE800F01707 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7DDDA84214E6DD6600F01707 /* runtime.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
@@ -201,6 +253,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -233,7 +286,10 @@
 					"-Wcast-qual",
 				);
 				OTHER_LDFLAGS = (
-					"-lpthread",
+					"-lLLVMLinker",
+					"-lLLVMArchive",
+					"-lLLVMBitWriter",
+					"-lLLVMBitReader",
 					"-lLLVMX86Disassembler",
 					"-lLLVMX86AsmParser",
 					"-lLLVMX86CodeGen",
@@ -295,7 +351,10 @@
 					"-Wcast-qual",
 				);
 				OTHER_LDFLAGS = (
-					"-lpthread",
+					"-lLLVMLinker",
+					"-lLLVMArchive",
+					"-lLLVMBitWriter",
+					"-lLLVMBitReader",
 					"-lLLVMX86Disassembler",
 					"-lLLVMX86AsmParser",
 					"-lLLVMX86CodeGen",
@@ -331,7 +390,10 @@
 				HEADER_SEARCH_PATHS = /usr/local/llvm/include/llvm;
 				LIBRARY_SEARCH_PATHS = /usr/local/llvm/lib;
 				OTHER_LDFLAGS = (
-					"-lpthread",
+					"-lLLVMLinker",
+					"-lLLVMArchive",
+					"-lLLVMBitWriter",
+					"-lLLVMBitReader",
 					"-lLLVMX86Disassembler",
 					"-lLLVMX86AsmParser",
 					"-lLLVMX86CodeGen",
@@ -368,7 +430,10 @@
 				HEADER_SEARCH_PATHS = /usr/local/llvm/include/llvm;
 				LIBRARY_SEARCH_PATHS = /usr/local/llvm/lib;
 				OTHER_LDFLAGS = (
-					"-lpthread",
+					"-lLLVMLinker",
+					"-lLLVMArchive",
+					"-lLLVMBitWriter",
+					"-lLLVMBitReader",
 					"-lLLVMX86Disassembler",
 					"-lLLVMX86AsmParser",
 					"-lLLVMX86CodeGen",
@@ -399,6 +464,121 @@
 			};
 			name = Release;
 		};
+		7DDDA83F14E6DCE800F01707 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				LIBRARY_SEARCH_PATHS = (
+					"/Users/mgadda/Projects/gc/gc-7.2alpha6/**",
+					/usr/local/llvm/lib,
+				);
+				MACH_O_TYPE = mh_dylib;
+				OTHER_CFLAGS = (
+					"-I/Users/mgadda/Projects/gc/gc-7.2alpha6/include",
+					"-I/usr/local/llvm/include",
+					"-D_DEBUG",
+					"-D_GNU_SOURCE",
+					"-D__STDC_CONSTANT_MACROS",
+					"-D__STDC_FORMAT_MACROS",
+					"-D__STDC_LIMIT_MACROS",
+					"-fvisibility-inlines-hidden",
+					"-fno-exceptions",
+					"-fno-rtti",
+					"-fno-common",
+					"-Woverloaded-virtual",
+					"-Wcast-qual",
+				);
+				OTHER_LDFLAGS = (
+					"-lgc",
+					"-lpthread",
+					"-lLLVMX86Disassembler",
+					"-lLLVMX86AsmParser",
+					"-lLLVMX86CodeGen",
+					"-lLLVMSelectionDAG",
+					"-lLLVMAsmPrinter",
+					"-lLLVMMCParser",
+					"-lLLVMLinker",
+					"-lLLVMX86Desc",
+					"-lLLVMX86AsmPrinter",
+					"-lLLVMX86Utils",
+					"-lLLVMX86Info",
+					"-lLLVMJIT",
+					"-lLLVMRuntimeDyld",
+					"-lLLVMExecutionEngine",
+					"-lLLVMCodeGen",
+					"-lLLVMScalarOpts",
+					"-lLLVMInstCombine",
+					"-lLLVMTransformUtils",
+					"-lLLVMipa",
+					"-lLLVMAnalysis",
+					"-lLLVMTarget",
+					"-lLLVMMC",
+					"-lLLVMObject",
+					"-lLLVMCore",
+					"-lLLVMSupport",
+				);
+				PRODUCT_NAME = redux;
+			};
+			name = Debug;
+		};
+		7DDDA84014E6DCE800F01707 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				LIBRARY_SEARCH_PATHS = (
+					"/Users/mgadda/Projects/gc/gc-7.2alpha6/**",
+					/usr/local/llvm/lib,
+				);
+				MACH_O_TYPE = mh_dylib;
+				OTHER_CFLAGS = (
+					"-I/Users/mgadda/Projects/gc/gc-7.2alpha6/include",
+					"-I/usr/local/llvm/include",
+					"-D_DEBUG",
+					"-D_GNU_SOURCE",
+					"-D__STDC_CONSTANT_MACROS",
+					"-D__STDC_FORMAT_MACROS",
+					"-D__STDC_LIMIT_MACROS",
+					"-O3",
+					"-fvisibility-inlines-hidden",
+					"-fno-exceptions",
+					"-fno-rtti",
+					"-fno-common",
+					"-Woverloaded-virtual",
+					"-Wcast-qual",
+				);
+				OTHER_LDFLAGS = (
+					"-lgc",
+					"-lpthread",
+					"-lLLVMX86Disassembler",
+					"-lLLVMX86AsmParser",
+					"-lLLVMX86CodeGen",
+					"-lLLVMSelectionDAG",
+					"-lLLVMAsmPrinter",
+					"-lLLVMMCParser",
+					"-lLLVMLinker",
+					"-lLLVMX86Desc",
+					"-lLLVMX86AsmPrinter",
+					"-lLLVMX86Utils",
+					"-lLLVMX86Info",
+					"-lLLVMJIT",
+					"-lLLVMRuntimeDyld",
+					"-lLLVMExecutionEngine",
+					"-lLLVMCodeGen",
+					"-lLLVMScalarOpts",
+					"-lLLVMInstCombine",
+					"-lLLVMTransformUtils",
+					"-lLLVMipa",
+					"-lLLVMAnalysis",
+					"-lLLVMTarget",
+					"-lLLVMMC",
+					"-lLLVMObject",
+					"-lLLVMCore",
+					"-lLLVMSupport",
+				);
+				PRODUCT_NAME = redux;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -416,6 +596,15 @@
 			buildConfigurations = (
 				7D2DF6E514992D3800DD3D46 /* Debug */,
 				7D2DF6E614992D3800DD3D46 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7DDDA83E14E6DCE800F01707 /* Build configuration list for PBXNativeTarget "runtime" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7DDDA83F14E6DCE800F01707 /* Debug */,
+				7DDDA84014E6DCE800F01707 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

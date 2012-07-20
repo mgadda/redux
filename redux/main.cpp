@@ -14,6 +14,7 @@
 
 #include <llvm/LLVMContext.h>
 #include <llvm/Module.h>
+#include <llvm/linker.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/JIT.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
@@ -27,6 +28,8 @@
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Target/TargetData.h>
 #include <llvm/Assembly/PrintModulePass.h>
+#include <llvm/BitCode/ReaderWriter.h>
+#include <llvm/Support/PathV1.h>
 
 extern redux::Block *fileBlock;
 extern redux::Node *topLevelNode;
@@ -40,7 +43,9 @@ extern int exit_status;
 
 extern int start_token;
 
-void *do_work(void *thread_id);
+//void *do_work(void *thread_id);
+
+llvm::Function *declare_gc_functions(llvm::Module &module);
 
 int main(int argc, char * const argv[])
 { 
@@ -49,14 +54,20 @@ int main(int argc, char * const argv[])
   bool interactive=false;
   bool compiled=false;
   bool optimized=false;
+  bool assemble=false;
+  bool verbose=false;
   
   int c;
   int index;
   
-  while ((c = getopt(argc, argv, "vicz")) != -1) {
+  static struct option long_options[] = {
+    {"vv", no_argument, 0, 0}
+  };
+  while ((c = getopt(argc, argv, "diczao:")) != -1) {
     switch (c) {
-      case 'v':
+      case 'd':
         yydebug=1;
+        verbose=true;
         break;
       case 'i':
         interactive=true;
@@ -66,15 +77,20 @@ int main(int argc, char * const argv[])
         break;
       case 'z':
         optimized=true;
+      case 'a':
+        assemble=true;
       default:
         break;
     }
   }
   
-  if (!compiled) {
+  //if (!compiled) {
     llvm::InitializeNativeTarget();
-  }  
-  
+  //}  
+
+  // --------------------------
+  // Compile from STDIN
+  // --------------------------
   // case, no non-opt arguments, just parse, compile or run from stdin 
   if (optind == argc && !interactive) {
     llvm::Module *module = new llvm::Module("stdin", llvm::getGlobalContext()); 
@@ -107,62 +123,120 @@ int main(int argc, char * const argv[])
     return 0;
   }
   
-//  void *status;
-//  pthread_t worker[10];
-//  int ret;
-  
-//  ret = pthread_create(&worker[0], NULL, do_work, NULL);
-//  if(ret) {
-//    printf("ERROR: pthread_create() returned %d\n", ret);
-//  }
-//  pthread_create(&worker[1], NULL, do_work, NULL);
-//  if(ret) {
-//    printf("ERROR: pthread_create() returned %d\n", ret);
-//  }
-  
-  // TODO: create main function into which all non-function and class definitions
-  // can be inserted, this will make it possible to just "run" a file without specifying main()
-  for (index = optind; index < argc; index++) {
-    llvm::Module *module = new llvm::Module(argv[index], llvm::getGlobalContext()); 
-    CodeGenContext *context = new CodeGenContext(*module);
-    llvm::PassManager module_pass_manager;
-    
-    module_pass_manager.add(llvm::createPrintModulePass(&llvm::fouts()));
+  // --------------------------
+  // Multi-File Compile
+  // --------------------------
+  if (!interactive) {
+    llvm::Linker *linker = new llvm::Linker("redux", argv[optind], llvm::getGlobalContext());
+    linker->addSystemPaths();
+    //linker->addPath(llvm::sys::Path("../DerivedData/redux/Build/Products/Debug"));
+    //linker->addPath(llvm::sys::Path("./"));
 
-    FILE *f = fopen(argv[index], "r");
+    //linker->LinkInModule(llvm::Module *Src)
+    const std::vector<llvm::sys::Path> &paths = linker->getLibPaths();
     
-    if(!f) {
-      perror(argv[index]);
-      return 1;
+    std::vector<llvm::sys::Path>::const_iterator it;
+    
+    for (size_t i = 0; i < paths.size(); i++) {
+      const llvm::sys::Path &path = paths[i];
+      llvm::fdbgs() << path.str() << "\n";
+    }
+
+    llvm::PassManager module_pass_manager;
+
+    // TODO: create main function into which all non-function and class definitions
+    // can be inserted, this will make it possible to just "run" a file without specifying main()
+    for (index = optind; index < argc; index++) {
+      llvm::Module *module = new llvm::Module(argv[index], llvm::getGlobalContext()); 
+      CodeGenContext *context = new CodeGenContext(*module);
+      
+      //module->addLibrary("redux");
+      //declare_gc_functions(*module);
+      
+      FILE *f = fopen(argv[index], "r");
+      
+      if(!f) {
+        perror(argv[index]);
+        return 1;
+      }
+      
+      start_token = START_FILE;
+      yyrestart(f);
+  //    int t;
+  //    while ((t = yylex())) {
+  //      printf("%d\n", t);
+  //    }
+      yylineno = 1;
+      yyparse();
+      
+      if(fileBlock) {
+        //llvm::fdbgs() << "\n\nCompiling module " << argv[index] << "\n";
+        context->generate(*fileBlock);
+        llvm::verifyModule(*module);
+        linker->LinkInModule(module);
+        delete fileBlock;
+      }
+      else {
+        llvm::ferrs() << "\n\nFailed to compile Module " << argv[index] << "\n";
+      }
+      
+      //delete module;
+      delete context;
+      fclose(f);
     }
     
-    start_token = START_FILE;
-    yyrestart(f);
-//    int t;
-//    while ((t = yylex())) {
-//      printf("%d\n", t);
-//    }
-    yylineno = 1;
-    yyparse();
-    
-    if(fileBlock) {
-      //llvm::fdbgs() << "\n\nCompiling module " << argv[index] << "\n";
-      context->generate(*fileBlock);
-      llvm::verifyModule(*module);
-      module_pass_manager.run(*module);
-      delete fileBlock;
-    }
-    else {
-      llvm::ferrs() << "\n\nFailed to compile Module " << argv[index] << "\n";
+
+    std::string errMsg;
+    std::string obj_filename = std::string(argv[optind]);
+    size_t extension_idx = obj_filename.rfind(".rdx");
+    obj_filename.replace(extension_idx, 4, ".bc");
+    llvm::raw_fd_ostream file_stream(obj_filename.c_str(), errMsg, llvm::raw_fd_ostream::F_Binary);
+
+    if (compiled && !assemble)
+      module_pass_manager.add(llvm::createBitcodeWriterPass(file_stream));
+    else if(compiled && assemble) {
+      
     }
     
-    delete module;
-    delete context;
-    fclose(f);
+    if (verbose) // there's no reason to see the LLVM IR except for debugging
+      module_pass_manager.add(llvm::createPrintModulePass(&llvm::fouts()));  
+
+    // Add runtime dependency
+    bool is_native = true;
+    linker->LinkInLibrary("libredux.a", is_native);  
+    module_pass_manager.run(*linker->getModule());
+    
+    if (compiled) {
+      if (!errMsg.empty()) {
+        llvm::fdbgs() << errMsg;
+      }
+      file_stream.flush();
+      file_stream.close();
+    }
+    else { // else Just-In-Time run
+      // The default behavior, after we've linked all our modules together is to
+      // run them!
+
+      // 1. Run pass manager on module
+      // 2. Create a Main if it doesn't already exist
+      // 3. invoke main() (this is what lli is doing)
+      
+      //å∫llvm::ExecutionEngine *jit_engine = llvm::EngineBuilder(linker->getModule()).create();
+      
+      //llvm::Module &linked_module = *linker->getModule();
+      //module_pass_manager.run(linked_module);
+      
+      
+    }
+    
   }
   
+  // --------------------------
+  // Interactive Console
+  // --------------------------
   if (interactive) {
     llvm::Module *module = new llvm::Module("interactive", llvm::getGlobalContext()); 
+    
     CodeGenContext interactive_context(*module);
     llvm::FunctionPassManager func_pass_man(module);
           
@@ -294,6 +368,15 @@ int main(int argc, char * const argv[])
   return 0;
 }
 
+llvm::Function *declare_gc_functions(llvm::Module &module) {
+  // Create function (w/o definition)
+  llvm::Type *return_type = llvm::Type::getInt8PtrTy(llvm::getGlobalContext());
+  llvm::Type *arg_types[1] = {llvm::Type::getInt8Ty(llvm::getGlobalContext())};
+  
+  llvm::FunctionType *function_type = llvm::FunctionType::get(return_type, arg_types, false);
+  llvm::Function *function = llvm::Function::Create(function_type, llvm::Function::ExternalLinkage, "GC_MALLOC", &module);
+  return function;
+}
 //void *do_work(void *thread_id) {
 //  
 //  long wait_time = random()%10;

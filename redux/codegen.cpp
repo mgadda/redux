@@ -595,6 +595,7 @@ llvm::Function *CodeGenContext::generate_new_method_for_type(StructType &type) {
 //  sizeI->getType()->dump();
   
   Instruction *malloc_inst = CallInst::CreateMalloc(basic_block, Type::getInt32Ty(getGlobalContext()), type.getPointerTo(), sizeI);
+  //builder().CreateCall(module.getFunction("GC_MALLOC"))
   builder().Insert(malloc_inst);
   //ReturnInst::Create(getGlobalContext(), malloc_inst, basic_block);
   //llvm::AllocInst *alloca = builder().CreateAlloca(type.getPointerTo());  
