@@ -36,13 +36,13 @@
 "#".*                 
 
   /* Keywords */
-"return"                { return TOKEN(T_RETURN); }
+  /*"return"                { return TOKEN(T_RETURN); }*/
 "extern"                { return T_EXTERN; }
 "if"                    { return T_IF; }
 "elsif"                 { return T_ELSIF; }
 "else"                  { return T_ELSE; }
-"static"                { return T_STATIC; }
-"class"                 { return T_CLASS; }
+	/*"static"                { return T_STATIC; }*/
+	/*"class"                 { return T_CLASS; }*/
 
   /* Literals */
 "true"                  { return T_TRUE; }

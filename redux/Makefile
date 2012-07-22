@@ -4,13 +4,15 @@ GC_LIB=${GC_PREFIX}/.libs
 GC_STATIC_LIB=${GC_PREFIX}/.libs/static
 
 all: redux
-redux: redux.y redux.l main.cpp codegen.h codegen.cpp ast.h named_values.h named_values.cpp class.h class.cpp gc.ll
+redux: redux.y redux.l main.cpp codegen.h codegen.cpp ast.h named_values.h named_values.cpp gc.ll
 	bison -v -g -o parser.cpp redux.y && \
 	flex -o tokens.cpp redux.l && \
-	clang -x c++ -lstdc++ -Wall `llvm-config --libs core jit native bitreader bitwriter linker --cxxflags --ldflags` -g -o $@ codegen.cpp parser.cpp tokens.cpp main.cpp named_values.cpp class.cpp
+	clang -x c++ -lstdc++ -Wall `llvm-config --libs core jit native bitreader bitwriter linker --cxxflags --ldflags` -g -o $@ codegen.cpp parser.cpp tokens.cpp main.cpp named_values.cpp
 
 runtime: runtime.h runtime.cpp
-	clang++ -Wall -I${GC_INCLUDE} -L${GC_STATIC_LIB} -lgc -g -shared -o libredux.a runtime.cpp
+	clang++ -Wall -lgc -g -shared -o libredux.a runtime.cpp
+  #clang++ -Wall -I${GC_INCLUDE} -L${GC_STATIC_LIB} -lgc -g -shared -o libredux.a runtime.cpp
+
 
 test: redux runtime test_code/class_test.rdx
 	./redux test_code/class_test.rdx | llc > test_code/class_test.s && \
@@ -31,5 +33,5 @@ graph: redux
 clean:
 	rm -rf redux parser.cpp tokens.cpp parser.hpp parser.dot parser.svg parser.output redux.dSYM \
   class_test.bc class_test.ll test_code/class_test.s build/ compileme.o test_code/compileme.bc \
-	rrt.o
+	rrt.o libredux.a libredux.dylib
 	

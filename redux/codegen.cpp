@@ -11,7 +11,6 @@
 
 #include "codegen.h"
 #include "ast.h"
-#include "class.h"
 #include "parser.hpp"
 
 #include <llvm/Module.h>
@@ -400,23 +399,6 @@ Value *CodeGenContext::generate(redux::Identifier &identifier) {
   return builder().CreateLoad(alloca_inst, identifier.name);
 }
 
-Value *CodeGenContext::generate(redux::ReturnKeyword &return_keyword) {
-  // TODO: this doesn't work if invoked inside if else graph
-  //  llvm::Function *current_function = builder().GetInsertBlock()->getParent();
-  //  
-  //  BasicBlock *return_now_bb = BasicBlock::Create(getGlobalContext(), "return_now", current_function);
-  //  builder().CreateBr(return_now_bb);
-  //  builder().SetInsertPoint(return_now_bb);
-  if (return_keyword.returnExpression) {
-    Value *value = return_keyword.returnExpression->codeGen(*this);
-    return builder().CreateRet(value);  
-  }
-  else
-    return builder().CreateRetVoid();
-  
-  
-}
-
 Value *CodeGenContext::generate(redux::Integer &integer) {
   //  LLVMContext &context = getGlobalContext();
   //  IntegerType *int64_type = Type::getInt64Ty(context);  
@@ -489,83 +471,6 @@ Value *CodeGenContext::generate(redux::IfElse &if_else) {
   return phi_node;
 }
 
-llvm::Value *CodeGenContext::generate(redux::Class &klass) {
-  // IMPORTANT: must process fields first (to create type) before functions can
-  // be generated, since they'll reference the instance variables
-  
-  // declare struct type with klass name
-  // it should have fields that correspond to klass's variables
-  
-  //std::string class_type_name = std::string("class.") + klass.name;
-  std::string class_type_name = klass.name;
-  
-  StructType *class_struct_type = module.getTypeByName(class_type_name);
-  
-  // TODO: determine way to look up variables in function bodies, need to keep
-  // track of order in which they're stored in the struct type
-  std::vector<Type*> fields;
-  std::map<std::string, redux::Variable*>::iterator vit;
-  int idx;
-  for (idx=0, vit = klass.variables.begin(); vit != klass.variables.end(); ++vit, idx++) {
-    std::string name = (*vit).first;
-    redux::Variable &var = *(*vit).second;
-    Type *ty = llvmTypeForString(var.type, module);
-    fields.push_back(ty);
-    class_member_indices[class_type_name][var.name] = idx;
-  }
-  
-  if (!class_struct_type) {
-    class_struct_type = StructType::create(module.getContext(), fields, class_type_name);    
-  }
-  else {
-    class_struct_type->setBody(fields);
-  }
-
-  generate_new_method_for_type(*class_struct_type);
-  //module.NumeredTypesMapTy;
-  
-  //CallInst::CreateMalloc(llvm::BasicBlock *InsertAtEnd, llvm::Type *IntPtrTy, llvm::Type *AllocTy, llvm::Value *AllocSize);
-  
-  //llvm::TargetData::getTypeAllocSize(class_struct_type);
- 
-  // klass.name, what we prefix methods with ClassName_method_name
-  // iterate over each function and generate codegen for each, but use
-  // the modified method name
-  // arguments: pointer to ClassName, rest of args if any
-
-  // method definitions should have instance and static variables at their disposal
-  // that is, in named_values when they're being generated.
-  
-  // Modify each method's prototype to accept a pointer to an object of class_struct_type
-  /*
-   class Foo {
-     int compute(int x) {}
-   }
-   becomes:
-   class.Foo#compute
-   compute(int x) -> Foo.compute(Foo this, int x)
-   */
-  
-  // Generate instance methods
-  std::map<std::string, redux::Function*>::iterator it;
-  
-  for (it = klass.methods.begin(); it != klass.methods.end(); ++it) {
-    redux::Function *method = (*it).second;
-    method->prototype->name = class_type_name + "#" + method->prototype->name;
-    method->prototype->args.insert(method->prototype->args.begin(), new redux::Variable(class_type_name, "this"));
-    method->codeGen(*this);
-  }
-
-  // Generate class methods
-  for (it = klass.class_methods.begin(); it != klass.class_methods.end(); ++it) {
-    redux::Function *method = (*it).second;
-    method->prototype->name = class_type_name + "#" + method->prototype->name;
-    method->codeGen(*this);
-  }
-
-  return 0;
-}
-
 llvm::Function *CodeGenContext::generate_new_method_for_type(StructType &type) {
   // create method called "class_name#foo"
   // someday it should invoke initialize() instance method on newly minted instance
@@ -613,56 +518,6 @@ llvm::Function *CodeGenContext::generate_new_method_for_type(StructType &type) {
   return new_function;
 }
 
-llvm::Value *CodeGenContext::generate(redux::Constructor &constructor) {
-  return NULL;
-}
-
-
-llvm::Value *CodeGenContext::generate(redux::MemberAccess &member_access) {
-  
-  /*
-   if expression is present, determine type of expression, must be struct type
-   1. look up offset of member identifier's name into structs of this type (use global mapping)
-   2. use getelementptr to access the value stored at the appropriate offset
-   3. return value
-   */
-  if (member_access.expression) {
-      
-    llvm::Value *obj_expr_value = member_access.expression->codeGen(*this);
-    Type *obj_expr_type = obj_expr_value->getType();
-    if (obj_expr_type->isStructTy()) {
-      StructType *struct_ty = dyn_cast<StructType>(obj_expr_type);
-      
-      int offset_idx = class_member_indices[struct_ty->getName()][member_access.member_identifier.name];      
-      Value *offset_idx_value = ConstantInt::get(getGlobalContext(), APInt(8, offset_idx, true));
-          
-      Value *offset_values[2] = {ConstantInt::get(getGlobalContext(), APInt(1, 0, true)), offset_idx_value};
-      return builder().CreateGEP(obj_expr_value, offset_values);
-    }
-  }
-  /*
-   if expression is not present, it means the member access occurred in the form of @var_name.
-   1. determine struct type based on current class being constructed (where is this stored?)
-      it could be stored in named_values as the this alloca pointer
-   2. look up offset of member identifier's name into structs of this type (use global mapping)
-   3. use getelementptr to access the value stored at the appropriate offset
-   4. return value
-   */
-  if (!member_access.expression) {
-    AllocaInst *this_alloc_inst = named_values.get("this"); 
-    LoadInst *this_load_inst = builder().CreateLoad(this_alloc_inst, "this");
-
-    StructType *struct_ty = dyn_cast<StructType>(this_alloc_inst->getAllocatedType());
-    
-    int offset_idx = class_member_indices[struct_ty->getName().str()][member_access.member_identifier.name];      
-    Value *offset_idx_value = ConstantInt::get(getGlobalContext(), APInt(8, offset_idx, true));
-    
-    Value *offset_values[2] = {ConstantInt::get(getGlobalContext(), APInt(1, 0, true)), offset_idx_value};
-    return builder().CreateGEP(this_load_inst, offset_values);
-  
-  } 
-  return NULL;
-}
 
 llvm::Value *CodeGenContext::generate(redux::MethodCall &method_call) {
   bool is_class_method = false;
@@ -758,10 +613,6 @@ llvm::Value *CodeGenContext::generate(redux::MethodCall &method_call) {
     
   }
   return NULL;
-}
-
-llvm::Value *CodeGenContext::generate(redux::MemberAssignment &member_assignment) {
-  
 }
 
 CodeGenContext::~CodeGenContext() {

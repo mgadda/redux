@@ -4,11 +4,10 @@
   #include <sstream>
   
   #include "ast.h"
-  #include "class.h"
   
   redux::Block *fileBlock;
   redux::Node *topLevelNode;
-  redux::Class *classBeingBuilt;
+  //redux::Class *classBeingBuilt;
   
   #define YYDEBUG 1  
   extern int yylex();
@@ -38,7 +37,7 @@
   
   redux::Block *block;
 
-  redux::Class *class_decl;
+  //redux::Class *class_decl;
   
   redux::Function *function_decl;
   redux::FunctionCall *function_call;
@@ -53,7 +52,7 @@
   redux::Integer *integer;
   redux::Float *float_num;
 
-  redux::ReturnKeyword *return_keyword;
+  //redux::ReturnKeyword *return_keyword;
   
   redux::IfElse *ifelse;
   
@@ -72,7 +71,7 @@
 %token <token> T_LPAREN T_RPAREN T_LCURLY T_RCURLY T_LBRACKET T_RBRACKET T_COMMA 
 %token <token> T_SEMICOLON T_EQUAL T_DOT T_COLON T_NEWLINE
 %token <token> T_PLUS T_MINUS T_MULTIPLY T_DIVIDE
-%token <token> T_CLASS T_STATIC T_RETURN T_EXTERN T_IF T_ELSIF T_ELSE
+%token <token> T_EXTERN T_IF T_ELSIF T_ELSE // T_RETURN // T_CLASS T_STATIC 
 %token <token> T_BITOR T_BITAND
 %token <token> T_CEQUAL T_CNOT_EQUAL T_CLESS_THAN T_CGREATER_THAN T_CLTE T_CGTE
 
@@ -81,18 +80,18 @@
 
 %type <token> binary_operator
 
-%type <block> file statements block elsif class_statements
-%type <node> statement console class_statement
+%type <block> file statements block elsif
+%type <node> statement console
 %type <expression> expression numeric bool func_call
 %type <identifier> ident
 
-%type <class_decl> class_decl
+//%type <class_decl> class_decl
 %type <variable_decl> var_decl 
 %type <function_decl> func_decl 
 %type <function_proto> func_prototype 
 %type <varlist> func_decl_args
 %type <exprlist> call_args
-%type <return_keyword> return_statement
+//%type <return_keyword> return_statement
 
 %type <ifelse> if_stmt
 
@@ -123,7 +122,6 @@ interactive_statement: var_decl
   | func_decl            
   | func_prototype
   | expression    
-  | class_decl         
   ;
   
 statements: statement       { $$ = new redux::Block(); $$->nodes.push_back($<expression>1); }
@@ -134,13 +132,10 @@ statement: var_decl      { $$ = $1; }
   | func_decl            { $$ = $1; }
   | func_prototype       { $$ = $1; }
   | expression           { $$ = $1; }
-  | class_decl           { $$ = $1; }
-  | return_statement     { $$ = $1; }
   ;
 
   
 expression: ident T_EQUAL expression                { $$ = new redux::Assignment($1->name, $3); } // var = 2 + 2
-  | T_AT ident T_EQUAL expression                   { $$ = new redux::MemberAssignment(*$2, *$4); } // @var = 2 + 2
   | func_call                                       { $$ = $1; }
   | T_LCURLY keyValueList T_RCURLY   /* hash declaration */
   | expression binary_operator expression           { $$ = new redux::BinaryOperator($2, $1, $3); }   /* method call via binary operator */ 
@@ -149,8 +144,6 @@ expression: ident T_EQUAL expression                { $$ = new redux::Assignment
   | numeric                                         { $$ = $1; } /* 10, -3, 1.4345 */
   | bool                                            { $$ = $1; }
   | ident                                           { $$ = $1; } /* Foo, bar */
-  | T_AT ident                                      { $$ = new redux::MemberAccess(*$2); } /* @bar (implicitly, this.bar) */
-  | expression T_DOT ident                          { $$ = new redux::MemberAccess(*$1, *$3) } /* expr.member */
   | if_stmt                                         { $$ = $1; }
   ;
 
@@ -243,76 +236,8 @@ binary_operator: T_PLUS | T_MINUS | T_MULTIPLY
   | T_BITOR | T_BITAND
   ;
 
-class_decl: T_CLASS ident { classBeingBuilt = new redux::Class($2->name); } T_LCURLY class_statements T_RCURLY
-    {
-      $$ = classBeingBuilt;
-      classBeingBuilt = NULL;
-    }
-   /* {
-      // This code is gross.
-      $$ = new redux::Class($2->name);
-      redux::NodeList::iterator it;
-      for(it = $4->nodes.begin(); it != $4->nodes.end(); ++it) {
-        redux::Node &node = **it;
-        if (node.node_type() == "Function") {
-          redux::Function *fun = (redux::Function*)*it;
-          $$->add_method(*fun);
-        }
-        else if (node.node_type() == "Variable") {
-          redux::Variable *var = (redux::Variable*)*it;
-          $$->add_variable(*var);
-        }
-        else if (node.node_type() == "Block") {
-          redux::Block *block = (redux::Block*)*it;
-          
-        }
-      }
-    } */
-
-  // Class with inheritance
-  | T_CLASS ident T_CLESS_THAN ident { classBeingBuilt = new redux::Class($2->name, $4->name); } T_LCURLY class_statements T_RCURLY
-    {
-      $$ = classBeingBuilt;
-      classBeingBuilt = NULL;
-    }
-
-  // Empty Class
-  /*| T_CLASS ident T_LCURLY T_RCURLY
-    { $$ = new redux::Class($2->name); }
-
-  // Empty Class with inheritance
-  | T_CLASS ident T_CLESS_THAN ident T_LCURLY T_RCURLY
-    { $$ = new redux::Class($2->name, $4->name); }
-  ;*/
-
-class_statements: class_statement       
-  | class_statements class_statement    
-  ;
-
-class_statement: func_decl              { classBeingBuilt->add_instance_method(*$1); }
-  | var_decl                            { classBeingBuilt->add_instance_variable(*$1); }
-  | T_STATIC func_decl                  { classBeingBuilt->add_class_method(*$2); }
-  | T_STATIC var_decl                   { classBeingBuilt->add_class_variable(*$2); }
-  | static_block
-  ;
-
-static_block: T_STATIC T_LCURLY static_class_statements T_RCURLY
-  ;
-
-static_class_statements: static_class_statement       
-  | static_class_statements static_class_statement    
-  ;
-
-static_class_statement: func_decl            { classBeingBuilt->add_class_method(*$1); }
-  | var_decl                            { classBeingBuilt->add_class_variable(*$1); }
-
 elementList: expression                 /*{ $$ = new RDXList(); $$->push_back($1); }*/
   | elementList T_COMMA expression      /*{ $1->push_back($2); }*/
-  ;
-
-
-return_statement: T_RETURN expression { $$ = new redux::ReturnKeyword(*$2); }
-  | T_RETURN                         { $$ = new redux::ReturnKeyword(); }
   ;
 
 empty: /* nothing */

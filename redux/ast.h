@@ -68,11 +68,6 @@ namespace redux {
     virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
   };
   
-  class Constructor : public Function {
-    virtual const std::string node_type() { return "Constructor"; }    
-    virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
-  };
-  
   class FunctionCall : public Expression {
   public:
     std::string callee;
@@ -158,18 +153,6 @@ namespace redux {
 
   };
   
-  class ReturnKeyword : public Node {
-  public:
-    Expression *returnExpression;
-    
-    ReturnKeyword(Expression &returnExpression) : returnExpression(&returnExpression) {}
-    ReturnKeyword() : returnExpression(NULL) {}
-    
-    virtual const std::string node_type() { return "Keyword"; }
-    virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
-
-  };
-  
   class IfElse : public Expression {
   public:
     Expression &condition;
@@ -185,27 +168,7 @@ namespace redux {
     virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
   
   };
-  
-  class MemberAccess : public Expression {    
-  public:
-    Expression *expression;
-    Identifier &member_identifier;
     
-    MemberAccess(Expression &object_expression, Identifier &member_identifier) : expression(&object_expression), member_identifier(member_identifier) {}
-    MemberAccess(Identifier &member_identifier) : expression(NULL), member_identifier(member_identifier) {}
-    
-    virtual const std::string node_type() { return "MemberAccess"; }
-    virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
-  };
-  
-  class MemberAssignment : public Expression {
-  public:
-    MemberAssignment(Identifier &member_identifier, Expression &expression) {}
-    virtual const std::string node_type() { return "MemberAssignment"; }
-    virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
-    
-  };
-  
   class MethodCall : public Expression {
   public:
     Expression *expression;

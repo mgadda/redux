@@ -24,7 +24,6 @@ namespace redux {
   class Function;
   class Prototype;
   class FunctionCall;
-  class Constructor;
   class BinaryOperator;
   class Assignment;
   class Variable;
@@ -32,12 +31,8 @@ namespace redux {
   class Float;
   class Integer;
   class Boolean;
-  class ReturnKeyword;
   class IfElse;
-  class Class;
-  class MemberAccess;
   class MethodCall;
-  class MemberAssignment;
 }
 
 
@@ -73,20 +68,15 @@ public:
   llvm::Value *generate(redux::Function &function);
   llvm::Value *generate(redux::Prototype &prototype);
   llvm::Value *generate(redux::FunctionCall &function_call);
-  llvm::Value *generate(redux::Constructor &constructor);  
   llvm::Value *generate(redux::BinaryOperator &bin_operator);
   llvm::Value *generate(redux::Assignment &assignment);
   llvm::Value *generate(redux::Variable &variable);  
   llvm::Value *generate(redux::Identifier &identifier);  
-  llvm::Value *generate(redux::ReturnKeyword &return_keyword);    
   llvm::Value *generate(redux::Integer &integer);
   llvm::Value *generate(redux::Float &float_val);
   llvm::Value *generate(redux::Boolean &bool_val);
   llvm::Value *generate(redux::IfElse &if_else);
-  llvm::Value *generate(redux::Class &klass);
   llvm::Value *generate(redux::MethodCall &method_call);
-  llvm::Value *generate(redux::MemberAccess &member_access);
-  llvm::Value *generate(redux::MemberAssignment &member_assignment);
   
   static llvm::Type *llvmTypeForString(std::string &type, llvm::Module &module);
   
