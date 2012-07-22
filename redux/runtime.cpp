@@ -26,7 +26,7 @@ static _STRUCT_UCONTEXT rdx_scheduler_context;
 static rdx_process_hash process_map;
 
 void init_redux() {
-  //GC_INIT();
+  GC_INIT();
 //
 //  int i;
 //  for (i = 0; i < 10000000; ++i)
@@ -59,7 +59,7 @@ void rdx_reduce(rdx_process &proc) {
 
 int rdx_spawn(void (*fun)(rdx_process *proc, int argc, void *argv), int argc, void *args) {
 	printf("Allocated %lu bytes for new rdx_process\n", sizeof(rdx_process));
-	rdx_process *proc = (rdx_process*)malloc(sizeof(rdx_process));
+	rdx_process *proc = (rdx_process*)GC_MALLOC(sizeof(rdx_process));
 	
 	proc->steps_left = 2000;
 	proc->pid = rdx_next_free_pid++;  
@@ -70,7 +70,7 @@ int rdx_spawn(void (*fun)(rdx_process *proc, int argc, void *argv), int argc, vo
 
 	getcontext(&proc->context);
   proc->context.uc_link = &rdx_scheduler_context;
-	proc->context.uc_stack.ss_sp = malloc(SIGSTKSZ);
+	proc->context.uc_stack.ss_sp = GC_MALLOC(SIGSTKSZ);
 	proc->context.uc_stack.ss_size = SIGSTKSZ;
 
 	//GC_dump();
@@ -121,9 +121,9 @@ void rdx_send_message(const void* expression, size_t size, int pid) {
 		// clear waiting flag so that scheduler gives this proc a chance
 		// to do something with message
 		proc->waiting = false;
-		rdx_message* new_message = (rdx_message*)malloc(sizeof(rdx_message));
+		rdx_message* new_message = (rdx_message*)GC_MALLOC(sizeof(rdx_message));
 		new_message->next = NULL;
-		new_message->expression = malloc(sizeof(size));
+		new_message->expression = GC_MALLOC(sizeof(size));
 		memcpy(new_message->expression, expression, size);
 		
 		if (proc->last_message) {
