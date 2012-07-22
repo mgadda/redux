@@ -9,8 +9,13 @@
 #include <iostream>
 #include "runtime.h"
 
+void foo(rdx_process *proc, int argc, void *argv) {	
+	rdx_exit(*proc);
+}
+
 void do_something(rdx_process *proc, int argc, void *argv);
 void do_something(rdx_process *proc, int argc, void *argv) {
+	rdx_spawn(foo, 0, NULL);
 	
 	void *expression = rdx_receive(*proc);
 	printf("%i got a message: %s\n", proc->pid, (char*)expression);
@@ -30,6 +35,8 @@ void do_something_else(rdx_process *proc, int argc, void *argv) {
 	
 	void *response = rdx_receive(*proc);	
 	printf("%i got a response: %s\n", proc->pid, (char*)response);
+	
+	rdx_spawn(foo, 0, NULL);
 	
 	rdx_exit(*proc);
 }
