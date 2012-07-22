@@ -56,7 +56,7 @@ extern "C" {
 	//typedef rdx_process_queue_item* rdx_process_queue;
 	
 	void rdx_reduce(rdx_process &proc);
-	void rdx_spawn(void (*fun)(rdx_process *proc, int argc, void *argv), int argc, void *args);
+	int rdx_spawn(void (*fun)(rdx_process *proc, int argc, void *argv), int argc, void *args);
 	void rdx_queue_proc(rdx_process *proc);
 	void rdx_remove_proc(rdx_process &proc);
 	

@@ -57,9 +57,7 @@ void rdx_reduce(rdx_process &proc) {
 }
 
 
-void rdx_spawn(void (*fun)(rdx_process *proc, int argc, void *argv), int argc, void *args) {
-	//ucontext_t *new_context = (ucontext_t*)malloc(sizeof(ucontext_t));
-
+int rdx_spawn(void (*fun)(rdx_process *proc, int argc, void *argv), int argc, void *args) {
 	printf("Allocated %lu bytes for new rdx_process\n", sizeof(rdx_process));
 	rdx_process *proc = (rdx_process*)malloc(sizeof(rdx_process));
 	
@@ -79,7 +77,7 @@ void rdx_spawn(void (*fun)(rdx_process *proc, int argc, void *argv), int argc, v
 
 	makecontext(&proc->context, (void (*)(void))fun, 3, proc, argc, args);
 	rdx_queue_proc(proc);
-
+	return proc->pid;
 }
 
 void rdx_queue_proc(rdx_process *proc) {
