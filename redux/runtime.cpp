@@ -172,6 +172,10 @@ void *rdx_receive(rdx_process &proc) {
 	}
 }
 
+void rdx_yield(rdx_process &proc) {
+	swapcontext(&proc.context, &rdx_scheduler_context);
+}
+
 void rdx_exit(rdx_process &proc) {
 	printf("proc %i exiting.\n", proc.pid);
 	proc.exited = true;

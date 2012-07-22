@@ -64,6 +64,7 @@ extern "C" {
 	
 	void rdx_send_message(const void* expression, size_t size, int pid);
 	void *rdx_receive(rdx_process &proc);
+	void rdx_yield(rdx_process &proc);
 	void rdx_exit(rdx_process &proc);
 }
 #endif
