@@ -5,11 +5,11 @@ Redux is a playground in which I have been experimenting with compiler developme
 
 But if you insist:
 
-Usage: redux [options] file...
-Options:
--d  Extremely erbose output
--i  Launch interactive mode
--c  Compile redux files specified by filename and output 
--z  Enable LLVM code optimizations
+Usage: redux [options] file...  
+Options:  
+-d  Extremely erbose output  
+-i  Launch interactive mode  
+-c  Compile redux files specified by filename and output  
+-z  Enable LLVM code optimizations  
 
 redux will parse and just-in-time compile anything it finds on STDIN. 
