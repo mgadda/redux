@@ -8,7 +8,7 @@ But if you insist:
 ```
 Usage: redux [options] file...  
 Options:  
--d  Extremely erbose output  
+-d  Extremely verbose output  
 -i  Launch interactive mode  
 -c  Compile redux files specified by filename and output  
 -z  Enable LLVM code optimizations  
