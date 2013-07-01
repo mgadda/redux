@@ -9,8 +9,6 @@
 #ifndef redux_runtime_h
 #define redux_runtime_h
 
-#include <map>
-
 /* undefine the defaults */
 //#undef uthash_malloc
 //#undef uthash_free
@@ -46,7 +44,7 @@ extern "C" {
 		rdx_message *last_message;
 	} rdx_process;
 	
-	typedef std::map<int, rdx_process*> rdx_process_hash;
+	
 	
 //	typedef struct rdx_process_queue_item_t {
 //		rdx_process *proc;

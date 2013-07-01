@@ -16,6 +16,7 @@
 		7D37FE6F14B5817C00265E91 /* codegen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D37FE6E14B5817C00265E91 /* codegen.cpp */; };
 		7D37FE7114B588A400265E91 /* ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D37FE7014B588A400265E91 /* ast.cpp */; };
 		7D83A12414A290D900048145 /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 7D83A12314A290D900048145 /* Makefile */; };
+		7D8D7F8F15BD89BF007E764C /* type_inference.c in Sources */ = {isa = PBXBuildFile; fileRef = 7D8D7F8E15BD89BF007E764C /* type_inference.c */; };
 		7DC06C6214CCF5DF00BA2AE8 /* named_values.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DC06C6114CCF5DF00BA2AE8 /* named_values.cpp */; };
 		7DC7BA00149BC3F700C76881 /* redux.l in Sources */ = {isa = PBXBuildFile; fileRef = 7DC7B9FF149BC3F700C76881 /* redux.l */; };
 		7DDDA84214E6DD6600F01707 /* runtime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DDDA84114E6DD6600F01707 /* runtime.cpp */; };
@@ -114,6 +115,8 @@
 		7D37FE7014B588A400265E91 /* ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ast.cpp; sourceTree = "<group>"; };
 		7D83A12314A290D900048145 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		7D83A12914A5A52F00048145 /* ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ast.h; sourceTree = "<group>"; };
+		7D8D7F8E15BD89BF007E764C /* type_inference.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = type_inference.c; sourceTree = "<group>"; };
+		7D8D7F9015BD89D0007E764C /* type_inference.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = type_inference.h; sourceTree = "<group>"; };
 		7DC06C5F14CCF2D700BA2AE8 /* named_values.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = named_values.h; sourceTree = "<group>"; };
 		7DC06C6114CCF5DF00BA2AE8 /* named_values.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = named_values.cpp; sourceTree = "<group>"; };
 		7DC7B9FF149BC3F700C76881 /* redux.l */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.lex; path = redux.l; sourceTree = "<group>"; };
@@ -191,19 +194,21 @@
 			isa = PBXGroup;
 			children = (
 				7D83A12914A5A52F00048145 /* ast.h */,
-				7DC7BA01149BC42200C76881 /* documentation */,
-				7DC7B9FF149BC3F700C76881 /* redux.l */,
+				7D37FE7014B588A400265E91 /* ast.cpp */,
 				7D2DF6DE14992D3800DD3D46 /* main.cpp */,
 				7D2DF6E714992DDD00DD3D46 /* redux.y */,
+				7DC7B9FF149BC3F700C76881 /* redux.l */,
 				7D83A12314A290D900048145 /* Makefile */,
 				7D37FE6D14B43FA400265E91 /* codegen.h */,
 				7D37FE6E14B5817C00265E91 /* codegen.cpp */,
-				7D37FE7014B588A400265E91 /* ast.cpp */,
 				7DC06C5F14CCF2D700BA2AE8 /* named_values.h */,
 				7DC06C6114CCF5DF00BA2AE8 /* named_values.cpp */,
 				7DDDA84114E6DD6600F01707 /* runtime.cpp */,
 				7DDDA84314E6DD7400F01707 /* runtime.h */,
 				7D15D0C315BBDF5A002A56B8 /* hash.c */,
+				7DC7BA01149BC42200C76881 /* documentation */,
+				7D8D7F8E15BD89BF007E764C /* type_inference.c */,
+				7D8D7F9015BD89D0007E764C /* type_inference.h */,
 			);
 			path = redux;
 			sourceTree = "<group>";
@@ -360,6 +365,7 @@
 				7D37FE7114B588A400265E91 /* ast.cpp in Sources */,
 				7DC06C6214CCF5DF00BA2AE8 /* named_values.cpp in Sources */,
 				7D15D0C415BBDF5A002A56B8 /* hash.c in Sources */,
+				7D8D7F8F15BD89BF007E764C /* type_inference.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -695,6 +701,7 @@
 			buildSettings = {
 				EXECUTABLE_EXTENSION = a;
 				EXECUTABLE_PREFIX = lib;
+				HEADER_SEARCH_PATHS = "";
 				LIBRARY_SEARCH_PATHS = (
 					/usr/local/llvm/lib,
 					"/usr/local/lib/**",
@@ -754,6 +761,7 @@
 			buildSettings = {
 				EXECUTABLE_EXTENSION = a;
 				EXECUTABLE_PREFIX = lib;
+				HEADER_SEARCH_PATHS = "";
 				LIBRARY_SEARCH_PATHS = (
 					/usr/local/llvm/lib,
 					"/usr/local/lib/**",

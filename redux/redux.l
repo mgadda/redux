@@ -36,13 +36,11 @@
 "#".*                 
 
   /* Keywords */
-  /*"return"                { return TOKEN(T_RETURN); }*/
 "extern"                { return T_EXTERN; }
 "if"                    { return T_IF; }
 "elsif"                 { return T_ELSIF; }
 "else"                  { return T_ELSE; }
-	/*"static"                { return T_STATIC; }*/
-	/*"class"                 { return T_CLASS; }*/
+"def"										{ return T_DEF; }
 
   /* Literals */
 "true"                  { return T_TRUE; }
@@ -53,7 +51,8 @@
 "0b"[-+]?[0-9]+         { SAVE_TOKEN; return T_BIN_INTEGER;}     
 "0"[-+]?[0-7]+          { SAVE_TOKEN; return T_OCT_INTEGER;}     
 \"[^\"]*\"              { SAVE_TOKEN; return T_STRING;}
-[a-zA-Z][a-zA-Z0-9_\-]*\?? { SAVE_TOKEN; return T_IDENTIFIER;}
+[A-Z][a-zA-Z0-9_\-]*\?? { SAVE_TOKEN; return T_VARIABLE;}
+[a-z][a-zA-Z0-9_\-]*\?? { SAVE_TOKEN; return T_ATOM;}
 
 [ \t\n]+ {}
   /*\n        { return TOKEN(T_NEWLINE); }*/

@@ -13,6 +13,8 @@ runtime: runtime.h runtime.cpp
 	clang++ -Wall -lgc -g -shared -o libredux.a runtime.cpp
   #clang++ -Wall -I${GC_INCLUDE} -L${GC_STATIC_LIB} -lgc -g -shared -o libredux.a runtime.cpp
 
+runtime_llvm:
+	clang++ -emit-llvm -Wall -lgc -shared -S runtime.cpp 	
 
 test: redux runtime test_code/class_test.rdx
 	./redux test_code/class_test.rdx | llc > test_code/class_test.s && \

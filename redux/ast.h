@@ -48,10 +48,9 @@ namespace redux {
     std::string name;
     VariableList args;
     
-    Prototype(const std::string &return_type,
-              const std::string &name, 
+    Prototype(const std::string &name, 
               VariableList args)
-    : return_type(return_type), name(name), args(args) {}
+    : name(name), args(args) {}
     
     virtual const std::string node_type() { return "Prototype"; }
     virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
@@ -89,13 +88,13 @@ namespace redux {
     virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
   };
 
-  class Variable : public Node {
+  class Variable : public Expression {
   public:
     std::string name;
     std::string type;
     Expression *value;
     
-    Variable(std::string type, std::string name) : name(name), type(type) {}
+    Variable(std::string name) : name(name) {}
 
     virtual const std::string node_type() { return "Variable"; }
     virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
@@ -117,7 +116,15 @@ namespace redux {
     virtual const std::string node_type() { return "Float"; }        
     virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
   };
-  
+
+	class String : public Expression {
+  public:
+		std::string value;
+    String(std::string value) : value(value) {}
+    virtual const std::string node_type() { return "String"; }
+    virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }
+  };
+	
   class Boolean : public Expression {
   public:
     bool truthiness;
@@ -125,7 +132,7 @@ namespace redux {
     virtual const std::string node_type() { return "Bool"; }        
     virtual llvm::Value* codeGen(CodeGenContext& context) { return context.generate(*this); }    
   };
-  
+  	
   class BinaryOperator : public Expression {
   public:
     int operation; // T_PLUS, T_MINUS, T_CEQUAL, etc

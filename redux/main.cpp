@@ -103,7 +103,8 @@ int main(int argc, char * const argv[])
     start_token = START_FILE;
     
     yyparse();
-    
+    // TODO: perform type inference analysis
+		
     if(fileBlock) {
       llvm::fdbgs() << "\n\nCompiling module from stdin\n";
       context->generate(*fileBlock);
@@ -168,7 +169,8 @@ int main(int argc, char * const argv[])
   //    }
       yylineno = 1;
       yyparse();
-      
+      // TODO: perform type inference analysis
+			
       if(fileBlock) {
         //llvm::fdbgs() << "\n\nCompiling module " << argv[index] << "\n";
         context->generate(*fileBlock);
@@ -272,7 +274,8 @@ int main(int argc, char * const argv[])
       start_token = START_CONSOLE;
       yyrestart(stdin);
       yyparse();
-            
+			// TODO: perform type inference analysis
+			
       if (topLevelNode) {
         
         //llvm::IRBuilder<> builder(llvm::getGlobalContext());
@@ -358,10 +361,6 @@ int main(int argc, char * const argv[])
     // TODO: provide way to exit interactive mode and clean up memory (delete module)
   }
   
-//  pthread_join(worker[0], &status);
-//  pthread_join(worker[1], &status);
-//  
-//  pthread_exit(NULL);
   //std::cout << fileBlock << std::endl;
   if (exit_status) exit(exit_status);
   
@@ -377,12 +376,3 @@ llvm::Function *declare_gc_functions(llvm::Module &module) {
   llvm::Function *function = llvm::Function::Create(function_type, llvm::Function::ExternalLinkage, "GC_MALLOC", &module);
   return function;
 }
-//void *do_work(void *thread_id) {
-//  
-//  long wait_time = random()%10;
-//  printf("Doing some work on a thread %lu for %ld seconds.\n", (unsigned long)pthread_self(), wait_time);
-//  sleep((unsigned int)wait_time);
-//  printf("done.\n");
-//  return NULL;
-//}
-//

@@ -20,6 +20,14 @@
 #include <ucontext.h>
 #include "runtime.h"
 
+#include <map>
+#include <gc.h>
+#include <gc/gc_allocator.h>
+
+typedef std::map<int, rdx_process*, 
+								 std::less<int>, 
+								 gc_allocator<std::pair<int, rdx_process*> > > rdx_process_hash;
+
 static int rdx_next_free_pid = 1;
 static _STRUCT_UCONTEXT rdx_scheduler_context;
 //static rdx_process_queue process_queue;
@@ -58,7 +66,7 @@ void rdx_reduce(rdx_process &proc) {
 
 
 int rdx_spawn(void (*fun)(rdx_process *proc, int argc, void *argv), int argc, void *args) {
-	printf("Allocated %lu bytes for new rdx_process\n", sizeof(rdx_process));
+	GC_disable();
 	rdx_process *proc = (rdx_process*)GC_MALLOC(sizeof(rdx_process));
 	
 	proc->steps_left = 2000;
@@ -77,6 +85,7 @@ int rdx_spawn(void (*fun)(rdx_process *proc, int argc, void *argv), int argc, vo
 
 	makecontext(&proc->context, (void (*)(void))fun, 3, proc, argc, args);
 	rdx_queue_proc(proc);
+	GC_enable();	
 	return proc->pid;
 }
 

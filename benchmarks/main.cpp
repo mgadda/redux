@@ -13,8 +13,8 @@ void spawn_lots(rdx_process *proc, int argc, void *argv);
 void wait_for_death(rdx_process *proc, int argc, void *argv);
 
 void spawn_lots(rdx_process *proc, int argc, void *argv) {
-	int n = 10;
-	int pids[10];
+	int n = 10000;
+	int pids[10000];
 	
 	for (int i=0; i<n; i++) {
 		rdx_reduce(*proc);
@@ -25,6 +25,7 @@ void spawn_lots(rdx_process *proc, int argc, void *argv) {
 		rdx_reduce(*proc);
 		rdx_send_message(NULL, 0, pids[i]);
 	}
+	
 	rdx_exit(*proc);	
 }
 
@@ -36,6 +37,7 @@ void wait_for_death(rdx_process *proc, int argc, void *argv) {
 int main(int argc, const char * argv[])
 {
 	init_redux();
+
 	rdx_spawn(spawn_lots, 0, NULL);
 	rdx_run_scheduler();
 	return 0;

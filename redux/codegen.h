@@ -29,6 +29,7 @@ namespace redux {
   class Variable;
   class Identifier;
   class Float;
+	class String;
   class Integer;
   class Boolean;
   class IfElse;
@@ -74,6 +75,7 @@ public:
   llvm::Value *generate(redux::Identifier &identifier);  
   llvm::Value *generate(redux::Integer &integer);
   llvm::Value *generate(redux::Float &float_val);
+  llvm::Value *generate(redux::String &string_val);
   llvm::Value *generate(redux::Boolean &bool_val);
   llvm::Value *generate(redux::IfElse &if_else);
   llvm::Value *generate(redux::MethodCall &method_call);

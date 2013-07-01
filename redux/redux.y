@@ -61,17 +61,18 @@
 
   redux::Identifier *identifier;
   
+	redux::String *stringLiteral;
+	
   std::string *string;
   int token;
 }
 
-%token <string> T_IDENTIFIER T_INTEGER T_HEX_INTEGER T_BIN_INTEGER T_OCT_INTEGER T_STRING T_FLOAT T_TRUE T_FALSE
-
+%token <string> T_ATOM T_VARIABLE T_INTEGER T_HEX_INTEGER T_BIN_INTEGER T_OCT_INTEGER T_FLOAT T_TRUE T_FALSE T_STRING
 %token <token> T_AT
 %token <token> T_LPAREN T_RPAREN T_LCURLY T_RCURLY T_LBRACKET T_RBRACKET T_COMMA 
 %token <token> T_SEMICOLON T_EQUAL T_DOT T_COLON T_NEWLINE
 %token <token> T_PLUS T_MINUS T_MULTIPLY T_DIVIDE
-%token <token> T_EXTERN T_IF T_ELSIF T_ELSE // T_RETURN // T_CLASS T_STATIC 
+%token <token> T_EXTERN T_IF T_ELSIF T_ELSE T_DEF
 %token <token> T_BITOR T_BITAND
 %token <token> T_CEQUAL T_CNOT_EQUAL T_CLESS_THAN T_CGREATER_THAN T_CLTE T_CGTE
 
@@ -83,20 +84,19 @@
 %type <block> file statements block elsif
 %type <node> statement console
 %type <expression> expression numeric bool func_call
-%type <identifier> ident
+%type <identifier> atom
 
-//%type <class_decl> class_decl
-%type <variable_decl> var_decl 
+%type <variable_decl> variable
 %type <function_decl> func_decl 
-%type <function_proto> func_prototype 
+  //%type <function_proto> func_prototype 
 %type <varlist> func_decl_args
 %type <exprlist> call_args
-//%type <return_keyword> return_statement
 
 %type <ifelse> if_stmt
 
-%type <list> elementList
-%type <hash> keyValueList
+%type <stringLiteral> string
+//%type <list> elementList
+//%type <hash> keyValueList
 
 %token START_FILE
 %token START_CONSOLE
@@ -118,9 +118,7 @@ file: statements         { fileBlock = $1; }
 console: interactive_statement { topLevelNode = $<node>1; YYACCEPT; }
 ;
 
-interactive_statement: var_decl     
-  | func_decl            
-  | func_prototype
+interactive_statement: func_decl            
   | expression    
   ;
   
@@ -128,50 +126,45 @@ statements: statement       { $$ = new redux::Block(); $$->nodes.push_back($<exp
   | statements statement    { $1->nodes.push_back($<expression>2); }
   ;
 
-statement: var_decl      { $$ = $1; }
-  | func_decl            { $$ = $1; }
-  | func_prototype       { $$ = $1; }
+statement: func_decl     { $$ = $1; }
   | expression           { $$ = $1; }
   ;
 
   
-expression: ident T_EQUAL expression                { $$ = new redux::Assignment($1->name, $3); } // var = 2 + 2
+expression: variable T_EQUAL expression             { $$ = new redux::Assignment($1->name, $3); } // Sum = 2 + 2
   | func_call                                       { $$ = $1; }
   | T_LCURLY keyValueList T_RCURLY   /* hash declaration */
   | expression binary_operator expression           { $$ = new redux::BinaryOperator($2, $1, $3); }   /* method call via binary operator */ 
   | T_LPAREN expression T_RPAREN                    { $$ = $2; } /* grouping () */
   | T_LBRACKET elementList T_RBRACKET   /*{ $$ = new RDXExpression(); $$->elements = *$2; }*/
   | numeric                                         { $$ = $1; } /* 10, -3, 1.4345 */
-  | bool                                            { $$ = $1; }
-  | ident                                           { $$ = $1; } /* Foo, bar */
+  | bool                                            { $$ = $1; } /* true, false */
+  | variable                                        { $$ = $1; } /* Foo */
   | if_stmt                                         { $$ = $1; }
+	| atom																						{ $$ = $1; }
+	| string																					{ $$ = $1; } 
   ;
 
-func_call: ident T_LPAREN call_args T_RPAREN        { $$ = new redux::FunctionCall($1->name, *$3); } /* function call */
-  | ident T_DOT ident T_LPAREN call_args T_RPAREN   { $$ = new redux::MethodCall(*$1, *$3, *$5); } // method call: foo.do_something()
-  ;
-  
-var_decl: ident ident                   { $$ = new redux::Variable($1->name, $2->name); }
-  | ident ident T_EQUAL expression      { $$ = new redux::Variable($1->name, $2->name); $$->value = $4; }
+func_call: atom T_LPAREN call_args T_RPAREN        { $$ = new redux::FunctionCall($1->name, *$3); } /* function call */
   ;
 
-func_decl: ident ident T_LPAREN func_decl_args T_RPAREN block 
+func_decl: T_DEF atom T_LPAREN func_decl_args T_RPAREN block 
     {
-      redux::Prototype *proto = new redux::Prototype($1->name, $2->name, *$4);
+      redux::Prototype *proto = new redux::Prototype($2->name, *$4);
       $$ = new redux::Function(proto, $6); 
     }    
   ;
 
-func_prototype: T_EXTERN ident ident T_LPAREN func_decl_args T_RPAREN    { $$ = new redux::Prototype($2->name, $3->name, *$5); }
-  ;
+	//func_prototype: T_EXTERN ident ident T_LPAREN func_decl_args T_RPAREN    { $$ = new redux::Prototype($2->name, $3->name, *$5); }
+	//  ;
   
 block: T_LCURLY statements T_RCURLY   { $$ = $2; }
   | T_LCURLY T_RCURLY                 { $$ = new redux::Block(); }
   ;
 
 func_decl_args: empty                 { $$ = new redux::VariableList(); }
-  | var_decl                          { $$ = new redux::VariableList(); $$->push_back($<variable_decl>1); }
-  | func_decl_args T_COMMA var_decl   { $1->push_back($<variable_decl>3); }
+  | variable                          { $$ = new redux::VariableList(); $$->push_back($<variable_decl>1); }
+  | func_decl_args T_COMMA variable   { $1->push_back($<variable_decl>3); }
   ;
 
 call_args: empty                      { $$ = new redux::ExpressionList(); }
@@ -179,9 +172,12 @@ call_args: empty                      { $$ = new redux::ExpressionList(); }
   | call_args T_COMMA expression      { $1->push_back($3); }
   ;
 
-ident: T_IDENTIFIER                   { $$ = new redux::Identifier(*$1); }
+atom: T_ATOM													{ $$ = new redux::Identifier(*$1); }
   ;
  
+variable: T_VARIABLE									{ $$ = new redux::Variable(*$1); }
+	;
+	
 numeric: T_INTEGER                    { $$ = new redux::Integer(atol($1->c_str())); delete $1; } /*{ $$ = new RDXInteger(atol($1->c_str())); delete $1; }*/
   | T_FLOAT                           { $$ = new redux::Float(atof($1->c_str())); delete $1; }
   | T_HEX_INTEGER                     { 
@@ -206,6 +202,9 @@ numeric: T_INTEGER                    { $$ = new redux::Integer(atol($1->c_str()
     }
   ;
 
+string: T_STRING											{ $$ = new redux::String(*$1); delete $1; }
+	;
+
 bool: T_TRUE                          { $$ = new redux::Boolean(true); }
   | T_FALSE                           { $$ = new redux::Boolean(false); }
   ;
@@ -227,7 +226,7 @@ keyValueList: keyValue /* | keyValueList T_ENDL */
   | keyValueList T_COMMA keyValue
   ;
 
-keyValue: ident T_COLON expression
+keyValue: atom T_COLON expression
   ;
 
 binary_operator: T_PLUS | T_MINUS | T_MULTIPLY 

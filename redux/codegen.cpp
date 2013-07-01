@@ -20,6 +20,7 @@
 #include <llvm/Constants.h>
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Instructions.h>
+#include <llvm/ADT/StringRef.h>
 
 using namespace llvm;
 
@@ -360,11 +361,11 @@ Value *CodeGenContext::generate(redux::Assignment &assignment) {
 // Variable declaration (and possibly assignment)
 Value *CodeGenContext::generate(redux::Variable &variable) {
   
-  // TODO: check if we're inside a function, if not, we're making global variables here
-  // IMPORTANT: the variable might be declared with global, function or block level scope
+  // TODO: check if we're inside a function, if not, an error has occurred
+  // IMPORTANT: the variable might be declared function or block level scope
   llvm::Function *current_function = builder().GetInsertBlock()->getParent();
   if (!current_function) {
-    // TODO: Or, make it a global variable?
+    // TODO: explode here.
     return 0;
   }
   AllocaInst *alloca_inst = declareStackVar(current_function, variable);
@@ -408,6 +409,10 @@ Value *CodeGenContext::generate(redux::Integer &integer) {
 
 Value *CodeGenContext::generate(redux::Float &float_val) {
   return ConstantFP::get(getGlobalContext(), APFloat(float_val.value));
+}
+
+Value *CodeGenContext::generate(redux::String &string_val) {
+  return ConstantArray::get(getGlobalContext(), StringRef(string_val.value));
 }
 
 Value *CodeGenContext::generate(redux::Boolean &bool_val) {
@@ -476,7 +481,7 @@ llvm::Function *CodeGenContext::generate_new_method_for_type(StructType &type) {
   // someday it should invoke initialize() instance method on newly minted instance
   push_builder();
   
-  redux::Prototype proto(type.getName(), type.getName().str() + "#new", redux::VariableList());
+  redux::Prototype proto(type.getName().str() + "#new", redux::VariableList());
   llvm::Function *new_function = (llvm::Function*)proto.codeGen(*this);
   
   if (!new_function) {
@@ -630,6 +635,9 @@ llvm::Type *CodeGenContext::llvmTypeForString(std::string &type, llvm::Module &m
   else if (type == "bool") {
     return Type::getInt1Ty(getGlobalContext());
   }
+	else if (type == "string") {
+		return Type::getInt8PtrTy(getGlobalContext());
+	}
   else if (type == "void") {
     return Type::getVoidTy(getGlobalContext());
   }
