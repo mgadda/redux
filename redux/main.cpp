@@ -63,7 +63,7 @@ int main(int argc, char * const argv[])
   static struct option long_options[] = {
     {"vv", no_argument, 0, 0}
   };
-  while ((c = getopt(argc, argv, "diczao:")) != -1) {
+  while ((c = getopt(argc, argv, "dicza:")) != -1) {
     switch (c) {
       case 'd':
         yydebug=1;
